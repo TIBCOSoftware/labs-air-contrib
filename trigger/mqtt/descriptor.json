@@ -1,0 +1,146 @@
+{
+    "name": "flogo-mqtt",
+    "type": "flogo:trigger",
+    "version": "0.1.0",
+    "title": "Receive MQTT Message",
+    "description": "Simple MQTT Trigger",
+    "homepage": "https://github.com/SteveNY-Tibco/labs-air-contrib/tree/master/trigger/mqtt",
+    "settings":[
+      {
+        "name": "broker",
+        "type": "string",
+        "required": true,
+        "description": "The broker url"
+      },
+      {
+        "name": "id",
+        "type": "string",
+        "required": true,
+        "description": "The id of client"
+      },
+      {
+        "name": "username",
+        "type": "string",
+        "description": "The user's name"
+      },
+      {
+        "name": "password",
+        "type": "string",
+        "description": "The user's password"
+      },
+      {
+        "name": "store",
+        "type": "string",
+        "description": "The store for message persistence"
+      },
+      {
+        "name": "cleanSession",
+        "type": "boolean",
+        "description": "Clean session flag"
+      },
+      {
+        "name": "autoReconnect",
+        "type": "boolean",
+        "description": "Enable Auto-Reconnect"
+      },
+      {
+        "name": "keepAlive",
+        "type": "int",
+        "description": "Keep Alive Time in seconds"
+      },
+      {
+        "name": "sslConfig",
+        "type": "object",
+        "description": "Optional SSL Settings",
+        "properties": [
+          {
+            "name": "skipVerify",
+            "type": "boolean",
+            "value": "true",
+            "description": "Skip SSL validation"
+          },
+          {
+            "name": "useSystemCert",
+            "type": "boolean",
+            "value": "true",
+            "description": "Use the systems root certificate file"
+          },
+          {
+            "name": "certFile",
+            "type": "string",
+            "description": "Path to PEM encoded client certificate"
+          },
+          {
+            "name": "keyFile",
+            "type": "string",
+            "description": "Path to PEM encoded client key"
+          },
+          {
+            "name": "caFile",
+            "type": "string",
+            "description": "Path to PEM encoded root certificates file"
+          }
+        ]
+      }
+    ],
+    "output": [
+      {
+        "name": "message",
+        "type": "string",
+        "description": "The message received"
+      },
+      {
+        "name": "content",
+        "type": "any",
+        "description": "The content of the json message received"
+      },
+      {
+        "name": "topic",
+        "type": "string",
+        "description": "The Mqtt Topic."
+      },
+      {
+        "name": "topicParams",
+        "type": "params",
+        "description": "The topic parameters"
+      }
+    ],
+    "reply": [
+      {
+        "name": "data",
+        "type": "object",
+        "description": "The data to send"
+      }
+    ],
+    "handler": {
+      "settings": [
+        {
+          "name": "topic",
+          "type": "string",
+          "description": "The topic to subscribe to"
+        },
+        {
+          "name": "qos",
+          "type": "int",
+          "allowed": [0,1,2],
+          "description": "The Quality of Service"
+        },
+        {
+          "name": "deserializer",
+          "type": "string",
+          "allowed": ["String","JSON","Base64","Base64JSON"],
+          "description": "Content deserialization method"
+        },
+        {
+          "name": "retain",
+          "type": "boolean",
+          "description": "Retain Messages"
+        },
+        {
+          "name": "replyTopic",
+          "type": "string",
+          "description": "The topic to reply to"
+        }
+      ]
+    }
+  }

@@ -1,0 +1,93 @@
+{
+  "name": "flogo-aggregate",
+  "type": "flogo:activity",
+  "version": "0.2.0",
+  "title": "Aggregate",
+  "description": "Simple Aggregate Activity",
+    "display": {
+       "category": "ModelOps",
+       "visible": true
+    },
+	"ref": "github.com/SteveNY-Tibco/labs-air-contrib/activity/aggregate",
+  "settings": [
+    {
+      "name": "function",
+      "type": "string",
+      "required": true,
+      "allowed" : ["avg", "sum", "min", "max", "count", "accumulate"],
+      "display": {
+          "name": "Function",
+          "type": "dropdown",
+          "selection": "single",
+          "description": "Select an aggregation function",
+          "appPropertySupport": true
+      }
+    },
+    {
+      "name": "windowType",
+      "type": "string",
+      "required": true,
+      "allowed" : ["tumbling", "sliding", "timeTumbling", "timeSliding"],
+      "display": {
+          "name": "Window Type",
+          "type": "dropdown",
+          "selection": "single",
+          "description": "Select a window type",
+          "appPropertySupport": true
+      }
+    },
+    {
+      "name": "windowSize",
+      "type": "integer",
+      "required": true,
+      "display": {
+          "name": "Window Size",
+          "description": "Enter window size",
+          "appPropertySupport": true
+      }
+    },
+    {
+      "name": "resolution",
+      "type": "integer",
+      "display": {
+          "name": "Resolution",
+          "description": "Enter Resolution",
+          "appPropertySupport": true
+      }
+    },
+    {
+      "name": "proceedOnlyOnEmit",
+      "type": "boolean",
+      "display": {
+          "name": "Proceed On Emit",
+          "description": "Proceed on Emit",
+          "appPropertySupport": true
+      }
+    },
+    {
+      "name": "additionalSettings",
+      "type": "string",
+      "display": {
+          "name": "Additional Settings",
+          "description": "Enter additional settings",
+          "appPropertySupport": true
+      }
+    }
+  ],
+  "input":[
+    {
+      "name": "value",
+      "type": "any"
+    }
+  ],
+  "output": [
+    {
+      "name": "result",
+      "type": "any"
+    },
+    {
+      "name": "report",
+      "type": "boolean"
+    }
+  ]
+}

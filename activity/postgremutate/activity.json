@@ -1,0 +1,106 @@
+{
+  "name": "postgresql-insert",
+  "title": "PostgreSQL Insert",
+  "version": "2.2.0",
+  "author": "TIBCO Software Inc.",
+  "type": "flogo:activity",
+  "display": {
+    "category": "PostgreSQL",
+    "visible": true,
+    "description": "This activity executes insert on a PostgreSQL database",
+    "smallIcon": "icons/ic-postgres-insert@2x.png",
+    "largeIcon": "icons/ic-postgres-insert@3x.png"
+  },
+  "ref": "git.tibco.com/git/product/ipaas/wi-postgres.git/src/app/PostgreSQL/activity/insert",
+  "inputs": [{
+      "name": "Connection",
+      "type": "connection",
+      "required": true,
+      "allowed": [],
+      "display": {
+        "name": "Connection",
+        "description": "Select a PostgreSQL Connection",
+        "type": "connection",
+        "selection": "single",
+        "visible": true
+      }
+    },
+    {
+      "name": "QueryName",
+      "description": "Custom Name for your SQL Insert",
+      "type": "string",
+      "required": false,
+      "display": {
+        "name": "Insert Name",
+        "description": "Custom Name for your SQL Insert",
+        "type": "string",
+        "visible": false
+      }
+    },
+    {
+      "name": "Query",
+      "type": "string",
+      "required": false,
+      "display": {
+        "name": "Insert Statement",
+        "description": "Enter an SQL statement. In case the query fails to retrieve table metadata automatically due to parsing errors, fetch metadata manually using 'Manually Configure Metadata' option",
+        "inputSettingsOnly": true,
+        "type": "texteditor"
+      }
+    },
+    {
+      "name": "manualmode",
+      "type": "boolean",
+      "required": true,
+      "value": false,
+      "display": {
+        "name": "Manually Configure Metadata",
+        "description": "Enable to use separate queries to acquire the fields metadata",
+        "visible": true,
+        "inputSettingsOnly": true
+      }
+    },
+    {
+      "name": "Fields",
+      "type": "array",
+      "required": false,
+      "display": {
+        "name": "Fields",
+        "description": "Displays input and output fields",
+        "type": "table",
+        "inputSettingsOnly": true,
+        "readonly": true,
+        "enableClear": true,
+        "manualFetch": true,
+        "schema": "{\"items\":{\"properties\":{\"FieldName\":{\"type\":\"string\",\"isEditable\":true},\"Type\":{\"type\":\"string\",\"isEditable\":true},\"Selected\":{\"type\":{\"enum\":[\"true\",\"false\"]},\"isEditable\":true},\"Parameter\":{\"type\":{\"enum\":[\"true\",\"false\"]},\"isEditable\":true},\"Value\":{\"type\":{\"enum\":[\"true\",\"false\"]},\"isEditable\":true}},\"type\":\"object\"},\"type\":\"array\"}"
+      }
+    },
+    {
+      "name": "RuntimeQuery",
+      "type": "string",
+      "required": false,
+      "display": {
+        "name": "RuntimeQuery",
+        "description": "If in manual mode enter the query that will be used at run-time",
+        "inputSettingsOnly": true,
+        "type": "texteditor",
+        "visible": false
+      }
+    },
+    {
+      "name": "input",
+      "type": "object"
+    },
+    {
+      "name": "State",
+      "type": "string",
+      "display": {
+        "visible": false
+      }
+    }
+  ],
+  "outputs": [{
+    "name": "Output",
+    "type": "object"
+  }]
+}

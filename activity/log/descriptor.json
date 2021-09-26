@@ -1,0 +1,43 @@
+{
+  "name": "flogo-log",
+  "type": "flogo:activity",
+  "version": "0.10.0",
+  "title": "Log",
+  "description": "Logs a message",
+  "homepage": "https://github.com/SteveNY-Tibco/labs-air-contrib/activity/log",
+  "display": {
+    "icon": "log-icon.svg"
+  },
+  "input": [
+    {
+      "name": "Log Level",
+      "type": "string",
+      "value": "",
+      "description": ""
+    },
+    {
+      "name": "message",
+      "type": "string",
+      "value": "",
+      "description": "The message to log"
+    },
+    {
+      "name": "flowInfo",
+      "type": "boolean",
+      "value": false,
+      "description": ""
+    },
+    {
+      "name": "addDetails",
+      "type": "boolean",
+      "value": false,
+      "description": "Append contextual execution information to the log message"
+    },
+    {
+      "name": "usePrint",
+      "type": "boolean",
+      "value": false,
+      "description": "Use Print to stdout instead of built-in logger"
+    }
+  ]
+}

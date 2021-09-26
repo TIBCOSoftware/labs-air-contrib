@@ -1,0 +1,62 @@
+{
+    "name": "rules",
+    "version": "1.0.0",
+    "title": "Rule Engine",
+    "author": "TIBCO Software Inc.",
+    "type": "flogo:activity",
+    "display": {
+       "category": "LC",
+       "visible": true,
+       "smallIcon": "rules.png",
+       "description": "This activity impplements Rule Engine"
+    },
+	"ref": "github.com/SteveNY-Tibco/labs-air-contrib/activity/rules",
+	"settings": [
+		{
+			"name": "id",
+			"type": "string",
+			"required": true,
+			"display": {
+				"name": "ID",
+				"description": "Engine ID",
+ 				"appPropertySupport": true
+			}
+		},
+		{
+			"name": "tupleDescriptor",
+			"type": "string",
+			"required": true,
+			"display": {
+				"name": "Tuple Descriptor",
+				"description": "defines the type or structure of a Tuple. It defines a tuple's properties and data types, and primary keys. It also defines the time to live for the tuple",
+ 				"appPropertySupport": true
+			}	
+		},
+		{
+			"name": "defalutRuleDescriptor",
+			"type": "string",
+			"required": true,
+			"display": {
+				"name": "Default Rule Descriptor",
+				"description": "is an expression involving one or more tuple types. When the expression evaluates to true, the condition passes. In order to optimize a Rule's evaluation, the Rule network needs to know of the TupleTypes and the properties of the TupleType which participate in the Condition evaluation. These are provided when constructing the condition and adding it to the rule.",
+ 				"appPropertySupport": true
+			}
+		}
+	],
+    "inputs": [
+ 		{
+			"name": "Data",
+			"type": "object"
+		},		
+		{
+            "name": "RuleDescriptor",
+            "type": "string"
+		}
+    ],
+	"outputs": [
+ 		{
+			"name": "Success",
+			"type": "boolean"
+		}
+	]
+}

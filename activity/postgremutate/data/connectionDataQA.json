@@ -1,0 +1,128 @@
+{
+    "id": "3d483000-bb7c-11e8-a211-efab733e23a2",
+    "connectorName": " ",
+    "connectorDescription": " ",
+    "display": {
+        "category": "POSTGRESQL"
+    },
+    "createdTime": 1537300291328,
+    "lastUpdatedTime": 1537300291328,
+    "connector": {
+        "type": "flogo:connector",
+        "version": "1.0.0",
+        "name": "postgresql-connector",
+        "inputMappings": {},
+        "outputMappings": {},
+        "iteratorMappings": {},
+        "title": "PostgreSQL Connector",
+        "description": "Connector to connect to a PostgreSQL database server",
+        "ref": "git.tibco.com/git/product/ipaas/wi-postgres.git/PostgreSQL/connector/connection",
+        "settings": [{
+                "name": "name",
+                "type": "string",
+                "required": true,
+                "display": {
+                    "name": "Connection Name",
+                    "visible": true
+                },
+                "value": "PostgrestUniv"
+            },
+            {
+                "name": "description",
+                "type": "string",
+                "display": {
+                    "name": "Description",
+                    "visible": true
+                },
+                "value": "PostgresUnivConnection"
+            },
+            {
+                "name": "host",
+                "type": "string",
+                "required": true,
+                "display": {
+                    "name": "Host",
+                    "description": "PostgreSQL Database Host name",
+                    "type": "string",
+                    "visible": true
+                },
+                "value": "52.53.245.117"
+            },
+            {
+                "name": "port",
+                "type": "integer",
+                "required": true,
+                "value": 5432,
+                "display": {
+                    "name": "Port",
+                    "description": "PostgreSQL Database Port",
+                    "type": "integer",
+                    "visible": true
+                }
+            },
+            {
+                "name": "databaseName",
+                "type": "string",
+                "required": true,
+                "display": {
+                    "name": "Database Name",
+                    "description": "Name of the Database",
+                    "type": "string",
+                    "visible": true
+                },
+                "value": "university"
+            },
+            {
+                "name": "user",
+                "type": "string",
+                "required": true,
+                "display": {
+                    "name": "User",
+                    "description": "Name of the Database User",
+                    "visible": true
+                },
+                "value": "admin"
+            },
+            {
+                "name": "password",
+                "type": "string",
+                "required": true,
+                "display": {
+                    "name": "Password",
+                    "description": "PostgreSQL Database Port",
+                    "type": "password",
+                    "visible": true
+                },
+                "value": "Tibco123"
+            }
+        ],
+        "outputs": [],
+        "inputs": [],
+        "handler": {
+            "settings": []
+        },
+        "reply": [],
+        "s3Prefix": "bob",
+        "key": "bob/PostgreSQL/connector/connection/connector.json",
+        "display": {
+            "description": "Connector to connect to a PostgreSQL database server",
+            "category": "PostgreSQL",
+            "visible": true,
+            "smallIcon": "icons/ic-postgres-connection@2x.png",
+            "largeIcon": "icons/ic-postgres-connection@3x.png"
+        },
+        "actions": [{
+            "name": "Connect"
+        }],
+        "feature": {},
+        "keyfield": "name",
+        "isValid": true,
+        "lastUpdatedTime": 1537300291328,
+        "createdTime": 1537300291328,
+        "user": "bob",
+        "subscriptionId": "bob_sbsc",
+        "id": "3d483000-bb7c-11e8-a211-efab733e23a2",
+        "connectorName": " ",
+        "connectorDescription": " "
+    }
+}

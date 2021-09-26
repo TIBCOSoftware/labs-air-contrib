@@ -1,0 +1,636 @@
+{
+    "name": "f1",
+    "type": "flogo:function",
+    "version": "0.1.0",
+    "title": "F1 functions",
+    "description": "Useful tools and utilities",
+    "functions": [
+        {
+            "name": "escapek8sid",
+            "description": "Returns a escaped k8s id: only allow 'a-z', '0-9' and '-'",
+            "example": "f1.escapek8sid('AB-C') => ab-c",
+            "args": [
+                {
+                    "name": "str",
+                    "type": "string"
+                }
+            ],
+            "return": {
+                "type": "string"
+            }
+        },
+        {
+            "name": "keywordreplace",
+            "description": "Replace keyword by defined value",
+            "example": "f1.keywordreplace('$KEY$', '$', '$', map[string]interface{}{'KEY':'VALUE'}) => VALUE",
+            "args": [
+                {
+                    "name": "str",
+                    "type": "string"
+                },
+                {
+                    "name": "lefttoken",
+                    "type": "string"
+                },
+                {
+                    "name": "righttoken",
+                    "type": "string"
+                },
+                {
+                    "name": "map",
+                    "type": "object"
+                }
+            ],
+            "return": {
+                "type": "string"
+            }
+        },
+        {
+            "name": "combineobjs",
+            "description": "Returns a union of two object",
+            "example": "f1.combineobjs({'key1':'value1'}, {'key2':'value2'}) => {'key1':'value1', 'key2':'value2'}",
+            "args": [
+                {
+                    "name": "obj1",
+                    "type": "object"
+                },
+                {
+                    "name": "obj2",
+                    "type": "object"
+                }
+            ],
+            "return": {
+                "type": "object"
+            }
+        },
+        {
+            "name": "combineproperties",
+            "description": "Returns a union of two properties",
+            "example": "f1.combineproperties([{'Name':'name1', 'Value':'value1'}], [{'Name':'name2', 'Value':'value2'}]) => [{'Name':'name1', 'Value':'value1'}, {'Name':'name2', 'Value':'value2'}]",
+            "args": [
+                {
+                    "name": "prop1",
+                    "type": "array",
+                    "valueType": "object"
+                },
+                {
+                    "name": "prop2",
+                    "type": "array",
+                    "valueType": "object"
+                }
+            ],
+            "return": {
+                "type": "array",
+                "valueType": "object"
+            }
+        },
+        {
+            "name": "getproperty",
+            "description": "Returns a property from properties",
+            "example": "f1.combineproperties([{'Name':'name1', 'Value':'value1'}], 'name1') => value1",
+            "args": [
+                {
+                    "name": "prop",
+                    "type": "array",
+                    "valueType": "object"
+                },
+                {
+                    "name": "key",
+                    "type": "string"
+                }
+            ],
+            "return": {
+                "type": "value",
+                "valueType": "any"
+            }
+        },
+        {
+            "name": "air2f1properties",
+            "description": "Tranform properties from Air to F1",
+            "example": "f1.air2f1properties('service.airApp', [{'Name':'name1', 'Value':'value1'}]) => [{'Name':'service.airApp[0]', 'Value':'name1=value1'}]",
+            "args": [
+                {
+                    "name": "deployType",
+                    "type": "string"
+                },
+                {
+                    "name": "f1PropertyNamePrefix",
+                    "type": "string"
+                },
+                {
+                    "name": "f1Properties",
+                    "type": "array",
+                    "valueType": "object"
+                },
+                {
+                    "name": "airProperties",
+                    "type": "array",
+                    "valueType": "object"
+                },
+                {
+                    "name": "propertyNameDef",
+                    "type": "object"
+                },
+                {
+                    "name": "extraProperties",
+                    "type": "array",
+                    "valueType": "object"
+                }
+            ],
+            "return": {
+                "type": "array",
+                "valueType": "object"
+            }
+        },
+        {
+            "name": "airdata2collection",
+            "description": "Tranform Air data to data selector format",
+            "example": "f1.airdata2array({'gateway':'', 'core':{...}}, [{'producer':'', 'consumer':'', 'name':'', 'value':''}]",
+            "args": [
+                {
+                    "name": "airData",
+                    "type": "object"
+                },
+                {
+                    "name": "dataCollection",
+                    "type": "array",
+                    "valueType": "object"
+                }
+            ],
+            "return": {
+                "type": "array",
+                "valueType": "object"
+            }
+        },
+        {
+            "name": "airdatagen",
+            "description": "Air data generator",
+            "example": "f1.airdatagen('gateway', {'gateway':{'device':{..}}}) => {'gateway':'', 'readings':[{...}]}",
+            "args": [
+                {
+                    "name": "gateway",
+                    "type": "string"
+                },
+                {
+                    "name": "config",
+                    "type": "object"
+                }
+            ],
+            "return": {
+                "type": "object"
+            }
+        },
+        {
+            "name": "airdata2array",
+            "description": "Tranform Air data to data array",
+            "example": "f1.airdata2array('gateway', {...}, [{...}]) => {'gateway':'', 'readings':[{...}]}",
+            "args": [
+                {
+                    "name": "gateway",
+                    "type": "string"
+                },
+                {
+                    "name": "reading",
+                    "type": "object"
+                },
+                {
+                    "name": "enriched",
+                    "type": "array",
+                    "valueType": "object"
+                }
+            ],
+            "return": {
+                "type": "array",
+                "valueType": "object"
+            }
+        },
+        {
+            "name": "airdataselector",
+            "description": "Tranform Air data to json sring",
+            "example": "f1.airdataselector('gateway', {...}, [{...}]) => {}",
+            "args": [
+                {
+                    "name": "gateway",
+                    "type": "string"
+                },
+                {
+                    "name": "reading",
+                    "type": "object"
+                },
+                {
+                    "name": "enriched",
+                    "type": "array",
+                    "valueType": "object"
+                },
+                {
+                    "name": "format",
+                    "type": "string"
+                }
+            ],
+            "return": {
+                "type": "string"
+            }
+        },
+        {
+            "name": "notify",
+            "description": "Send notification",
+            "example": "f1.notify('gateway', {...}, [{...}], value) => {}",
+            "args": [
+                {
+                    "name": "gateway",
+                    "type": "string"
+                },
+                {
+                    "name": "reading",
+                    "type": "object"
+                },
+                {
+                    "name": "enriched",
+                    "type": "array",
+                    "valueType": "object"
+                },
+                {
+                    "name": "targetField",
+                    "type": "string"
+                },
+                {
+                    "name": "matching",
+                    "type": "array",
+                    "valueType": "object"
+                },
+                {
+                    "name": "notifier",
+                    "type": "string"
+                }
+            ],
+            "return": {
+                "type": "object"
+            }
+        },
+        {
+            "name": "notifyasy",
+            "description": "Send notification asynchronously",
+            "example": "f1.notify('gateway', {...}, [{...}], value) => {}",
+            "args": [
+                {
+                    "name": "new",
+                    "type": "object"
+                },
+                {
+                    "name": "old",
+                    "type": "object"
+                },
+                {
+                    "name": "threshold",
+                    "type": "string"
+                },
+                {
+                    "name": "notifier",
+                    "type": "string"
+                }
+            ],
+            "return": {
+                "type": "object"
+            }
+        },
+        {
+            "name": "airdata2arrayold",
+            "description": "Tranform Air data to data array for old pipeline",
+            "example": "f1.airdata2arrayold('gateway', {...}, [{...}]) => {'gateway':'', 'readings':[{...}]}",
+            "args": [
+                {
+                    "name": "id",
+                    "type": "string"
+                },
+                {
+                    "name": "source",
+                    "type": "int"
+                },
+                {
+                    "name": "device",
+                    "type": "string"
+                },
+                {
+                    "name": "gateway",
+                    "type": "string"
+                },
+                {
+                    "name": "reading",
+                    "type": "object"
+                },
+                {
+                    "name": "enriched",
+                    "type": "array",
+                    "valueType": "object"
+                }
+            ],
+            "return": {
+                "type": "array",
+                "valueType": "object"
+            }
+        },
+        {
+            "name": "airfiltersimple",
+            "description": "Returns true : objects match target names",
+            "example": "f1.isempty(<reading object>, [{'device':'d1', 'resource':'r1'}]) => true",
+            "args": [
+                {
+                    "name": "reading",
+                    "type": "object"
+                },
+                {
+                    "name": "condition",
+                    "type": "array",
+                    "valueType": "object"
+                }
+            ],
+            "return": {
+                "type": "boolean"
+            }
+        },
+        {
+            "name": "airfirsttrue",
+            "description": "Returns the first objects set match target names",
+            "args": [
+                {
+                    "name": "reading",
+                    "type": "object"
+                },
+                {
+                    "name": "condition",
+                    "type": "array",
+                    "valueType": "object"
+                }
+            ],
+            "return": {
+                "type": "int"
+            }
+        },
+        {
+            "name": "isempty",
+            "description": "Returns true : the input object has no entry ",
+            "example": "f1.isempty({}) => true",
+            "args": [
+                {
+                    "name": "obj",
+                    "type": "object"
+                }
+            ],
+            "return": {
+                "type": "boolean"
+            }
+        },
+        {
+            "name": "isnull",
+            "description": "Returns true : the input object is null ",
+            "example": "f1.isnull(<null object>) => true",
+            "args": [
+                {
+                    "name": "obj",
+                    "type": "object"
+                }
+            ],
+            "return": {
+                "type": "boolean"
+            }
+        },
+        {
+            "name": "coalesceobject",
+            "description": "Returns the first non-null input object",
+            "example": "f1.coalescingobject(null, {}) => {}",
+            "args": [
+                {
+                    "name": "obj1",
+                    "type": "object"
+                },
+                {
+                    "name": "obj2",
+                    "type": "object"
+                }
+            ],
+            "return": {
+                "type": "object"
+            }
+        },
+        {
+            "name": "json2object",
+            "description": "Returns an object",
+            "example": "f1.json2object('{}') => empty object",
+            "args": [
+                {
+                    "name": "jsonstr",
+                    "type": "string"
+                }
+            ],
+            "return": {
+                "type": "any"
+            }
+        },
+        {
+            "name": "json2golang",
+            "description": "Returns an golang data",
+            "example": "f1.json2object('{}') => empty object",
+            "args": [
+                {
+                    "name": "jsonstr",
+                    "type": "string"
+                }
+            ],
+            "return": {
+                "type": "any"
+            }
+        },
+        {
+            "name": "getfstruct",
+            "description": "Returns folder structure",
+            "example": "f1.getfstruct('/folder', 2) => [{'name' : 'filename', 'type' : 'folder', 'value' : []}]",
+            "args": [
+                {
+                    "name": "folder",
+                    "type": "string"
+                },
+                {
+                    "name": "depth",
+                    "type": "int"
+                }
+            ],
+            "return": {
+                "type": "array",
+                "valueType": "object"
+            }
+        },
+        {
+            "name": "object2properties",
+            "description": "Returns input object to { Name, Value } properties",
+            "example": "f1.object2properties({'key1': 'value1'}, 'key1,') => [{'Name':'key1', 'Value':'value1'}]",
+            "args": [
+                {
+                    "name": "obj",
+                    "type": "object"
+                },
+                {
+                    "name": "key",
+                    "type": "string"
+                }
+            ],
+            "return": {
+                "type": "array",
+                "valueType": "object"
+            }
+        },
+        {
+            "name": "object2json",
+            "description": "Returns input object to JSON object",
+            "example": "f1.object2json(['key1' 'value1']) => {'key1' : 'value1'}",
+            "args": [
+                {
+                    "name": "obj",
+                    "type": "object"
+                }
+            ],
+            "return": {
+                "type": "string"
+            }
+        },
+        {
+            "name": "deployeddockercmp",
+            "description": "convert docker container to deployed components",
+            "example": "f1.deployeddockercmp(<docker>) => [{'Name':'key1', 'Value':'value1'}]",
+            "args": [
+                {
+                    "name": "docker_containers",
+                    "type": "array",
+                    "valueType": "object"
+                }
+            ],
+            "return": {
+                "type": "array",
+                "valueType": "object"
+            }
+        },
+        {
+            "name": "getsubobject",
+            "description": "Returns the subobject from input object, returns null if input object is null",
+            "example": "f1.getsubobject({'key1', {'key2', 'value'}}, 'key1') => {'key2', 'value'}",
+            "args": [
+                {
+                    "name": "obj",
+                    "type": "object"
+                },
+                {
+                    "name": "key",
+                    "type": "string"
+                }
+            ],
+            "return": {
+                "type": "any"
+            }
+        },
+        {
+            "name": "haskey",
+            "description": "Returns the true if key exists",
+            "example": "f1.haskey({'key1', {'key2', 'value'}}, 'key1') => true",
+            "args": [
+                {
+                    "name": "obj",
+                    "type": "object"
+                },
+                {
+                    "name": "key",
+                    "type": "string"
+                }
+            ],
+            "return": {
+                "type": "boolean"
+            }
+        },
+        {
+            "name": "modifyobject",
+            "description": "Returns the modified object from input object and new value, returns null if input object is null",
+            "example": "f1.modifyobject({'key1', {'key2', 'value'}}, 'key1', {'key3', 'value'}) => {'key1', {'key3', 'value'}}",
+            "args": [
+                {
+                    "name": "obj",
+                    "type": "object"
+                },
+                {
+                    "name": "key",
+                    "type": "string"
+                },
+                {
+                    "name": "value",
+                    "type": "any"
+                }
+            ],
+            "return": {
+                "type": "object"
+            }
+        },
+        {
+            "name": "ternary",
+            "description": ".",
+            "example": "f1.ternary(true,\"B\",\"C\") => \"B\"",
+            "varArgs": true,
+            "args": [
+                {
+                    "name": "condition",
+                    "type": "boolean"
+                },
+                {
+                    "name": "item1",
+                    "type": "any"
+                },
+                {
+                    "name": "item2",
+                    "type": "any"
+                }
+            ],
+            "return": {
+                "type": "any"
+            }
+        },
+        {
+            "name": "toobjectarray",
+            "description": "cast any to object array",
+            "args": [
+                {
+                    "name": "input",
+                    "type": "any"
+                }
+            ],
+            "return": {
+                "type": "array",
+                "valueType": "object"
+            }
+        },
+        {
+            "name": "airflogoproperties",
+            "description": "Extract proprtties from flogo app",
+            "example": "f1.airflogoproperties(<flogo app json string>) => [{'Name':'', 'Value':'', 'Type':''}]",
+            "args": [
+                {
+                    "name": "flogoApp",
+                    "type": "string"
+                }
+            ],
+            "return": {
+                "type": "array",
+                "valueType": "object"
+            }
+        },
+        {
+            "name": "rtsfstr2properties",
+            "description": "String to RTSF properties",
+            "example": "f1.rtsfstr2properties(<RTSF properties string>) => [{'Name':'', 'Value':'', 'Type':''}]",
+            "args": [
+                {
+                    "name": "RTSFPropertiesString",
+                    "type": "string"
+                }
+            ],
+            "return": {
+                "type": "object"
+            }
+        }
+    ]
+}
