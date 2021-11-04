@@ -1,0 +1,43 @@
+{
+	"name": "notificationlistener",
+	"type": "flogo:trigger",
+	"ref": "github.com/TIBCOSoftware/labs-air-contrib/trigger/notificationlistener",
+	"version": "0.0.1",
+	"title": "Notification Listener",
+	"description": "Listen to and deliver notification",
+	"homepage": "github.com/TIBCOSoftware/labs-air-contrib/trigger/notificationlistener",
+	"display": {
+		"category": "LC",
+		"visible": true,
+		"smallIcon": "notificationlistener.png",
+		"description": "This trigger deliver notification"
+	},
+    "outputs": [
+		{
+            "name": "gateway",
+            "type": "string"
+		},
+		{
+            "name": "reading",
+            "type": "object"
+		},
+		{
+            "name": "enriched",
+            "type": "array"
+		}
+    ],
+	"handler": {
+		"settings": [
+			{
+        		"name": "notifierID",
+        		"type": "string",
+        		"required": true,
+        		"display":{
+        			"name": "Notifier ID",
+        			"description": "Set Notifier ID",
+        			"type": "string"
+        		}
+			}
+		]
+	}
+}

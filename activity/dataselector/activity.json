@@ -1,0 +1,73 @@
+{
+    "name": "dataselector",
+    "version": "1.0.0",
+    "title": "Data Selector",
+    "author": "TIBCO Software Inc.",
+    "type": "flogo:activity",
+    "display": {
+       "category": "ModelOps",
+       "visible": true,
+       "smallIcon": "dataselector.png",
+       "description": "This activity select datas from array"
+    },
+	"ref": "github.com/TIBCOSoftware/labs-air-contrib/activity/dataselector",
+	"settings": 	[
+		{
+			"name": "targets",
+			"type": "array",
+			"required": true,
+			"display": {
+				"name": "Targets",
+				"description": "Targets of selection",
+				"type": "table",
+				"schema": "{\r\n    \"$schema\": \"http:\/\/json-schema.org\/draft-04\/schema#\",\r\n    \"definitions\": {},\r\n    \"id\": \"http:\/\/example.com\/example.json\",\r\n    \"items\": {\r\n        \"id\": \"\/items\",\r\n        \"properties\": {\r\n            \"Name\": {\r\n                \"id\": \"\/items\/properties\/Name\",\r\n                \"type\": \"string\"\r\n            },\r\n            \"FieldMatch\": {\r\n                \"id\": \"\/items\/properties\/FieldMatch\",\r\n                \"type\": \"string\"\r\n            },\r\n            \"Type\": {\r\n                \"id\": \"\/items\/properties\/Type\",\r\n                \"type\": {\"enum\":[\"String\", \"Integer\", \"Long\", \"Double\", \"Boolean\", \"Date\"]}\r\n            }\r\n        },\r\n        \"type\": \"object\"\r\n    },\r\n    \"type\": \"array\"\r\n}"
+			}
+		},
+		{
+			"name": "leftToken",
+			"type": "string",
+			"required": true,
+			"display": {
+				"name": "Variable Left Token",
+				"description": "The left token around variable"
+			}
+		},
+		{
+			"name": "rightToken",
+			"type": "string",
+			"required": true,
+			"display": {
+				"name": "Variable Right Token",
+				"description": "The right token around variable"
+			}
+		},
+		{
+			"name": "variablesDef",
+			"type": "array",
+			"required": false,
+			"default": 0,
+			"display": {
+				"name": "Define Variables",
+				"description": "Name and type of input variables",
+				"type": "table",
+				"schema": "{\r\n    \"$schema\": \"http:\/\/json-schema.org\/draft-04\/schema#\",\r\n    \"definitions\": {},\r\n    \"id\": \"http:\/\/example.com\/example.json\",\r\n    \"items\": {\r\n        \"id\": \"\/items\",\r\n        \"properties\": {\r\n            \"Name\": {\r\n                \"id\": \"\/items\/properties\/Name\",\r\n                \"type\": \"string\"\r\n            },\r\n            \"Type\": {\r\n                \"id\": \"\/items\/properties\/Type\",\r\n                \"type\": {\"enum\":[\"String\", \"Integer\", \"Long\", \"Double\", \"Boolean\", \"Date\"]}\r\n            }\r\n        },\r\n        \"type\": \"object\"\r\n    },\r\n    \"type\": \"array\"\r\n}"
+			}
+		}
+	],
+    "inputs": [
+ 		{
+			"name": "DataCollection",
+			"type": "array"
+		},
+		{
+            "name": "Variables",
+            "type": "object"
+		}
+    ],
+	"outputs": [
+ 		{
+			"name": "ExtractedData",
+			"type": "object"
+		}
+	]
+}
