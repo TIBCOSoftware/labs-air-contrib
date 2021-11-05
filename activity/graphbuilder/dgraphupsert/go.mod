@@ -3,6 +3,6 @@ module github.com/TIBCOSoftware/labs-air-contrib/activity/graphbuilder/dgraphups
 go 1.14
 
 require (
-	github.com/TIBCOSoftware/labs-air-contrib/connector/dgraph v1.0.0
+	github.com/TIBCOSoftware/labs-air-contrib/connector/dgraph v0.6.0
 	github.com/project-flogo/core v1.5.0
 )
