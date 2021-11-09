@@ -84,14 +84,18 @@ func (a *Activity) Eval(context activity.Context) (done bool, err error) {
 
 	graph := dgraph.ReconstructGraph(input.Graph.(map[string]interface{})["graph"].(map[string]interface{}))
 
-	logCache.Debug("(getDgraph) graph obj = ", graph)
+	logCache.Debug("[BuilderActivity:Eval] graph obj = ", graph)
 
 	a.settings["graphModel"] = graph.GetModel()
 	dgraphService, err := a.dgraphMgr.Lookup(context.Name(), a.settings)
+	if nil != err {
+		logCache.Error("[BuilderActivity:Eval] exit during service lookup, with error = ", err.Error())
+		return false, err
+	}
 	err = dgraphService.UpsertGraph(graph, nil)
 
 	if nil != err {
-		logCache.Error("(DgraphUpsertActivity) exit during upsert, with error = ", err.Error())
+		logCache.Error("[BuilderActivity:Eval] exit during upsert, with error = ", err.Error())
 		return false, err
 	}
 
