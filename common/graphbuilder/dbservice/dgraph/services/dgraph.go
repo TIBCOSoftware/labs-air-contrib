@@ -15,8 +15,8 @@ import (
 	"github.com/TIBCOSoftware/labs-air-contrib/common/graphbuilder/dbservice/dgraph"
 	"github.com/TIBCOSoftware/labs-air-contrib/common/graphbuilder/dbservice/dgraph/api"
 
-	"github.com/TIBCOSoftware/labs-air-contrib/common/graphbuilder/dbservice/dgraph/api/v1"
-	"github.com/TIBCOSoftware/labs-air-contrib/common/graphbuilder/dbservice/dgraph/api/v2"
+//	"github.com/TIBCOSoftware/labs-air-contrib/common/graphbuilder/dbservice/dgraph/api/v1"
+//	"github.com/TIBCOSoftware/labs-air-contrib/common/graphbuilder/dbservice/dgraph/api/v2"
 	"github.com/TIBCOSoftware/labs-air-contrib/common/graphbuilder/dbservice/dgraph/api/v200"
 	"github.com/TIBCOSoftware/labs-air-contrib/common/graphbuilder/dbservice/dgraph/cache"
 	"github.com/TIBCOSoftware/labs-air-contrib/common/graphbuilder/dbservice/dgraph/rdf"
@@ -103,18 +103,21 @@ func NewDgraphService(properties map[string]interface{}) (dbservice.UpsertServic
 	log.Info("[services.NewDgraphService] API Version : ", version)
 	switch version {
 	case "v1":
-		dgraphService._api, _ = v1.NewAPI(url, user, password, tlsEnabled, tlsUserCfg)
+		//		dgraphService._api, _ = v1.NewAPI(url, user, password, tlsEnabled, tlsUserCfg)
 		log.Debug("[services.NewDgraphService] API version : v1")
 	case "v2":
-		dgraphService._api, _ = v2.NewAPI(url, user, password, tlsEnabled, tlsUserCfg)
+		//		dgraphService._api, _ = v2.NewAPI(url, user, password, tlsEnabled, tlsUserCfg)
 		log.Debug("[services.NewDgraphService] API version : v2")
 	default:
 		dgraphService._api, _ = v200.NewAPI(url, user, password, tlsEnabled, tlsUserCfg)
 		log.Debug("[services.NewDgraphService] API version : v200")
 	}
 
-	var err error
-	if "no" != properties["schemaGen"] && nil != properties["graphModel"] {
+	err := dgraphService._api.EnsureConnection()
+	if nil != err {
+		log.Error("[services.NewDgraphService] Unable to connect to dgraph server.")
+		return nil, err
+	} else if "no" != properties["schemaGen"] && nil != properties["graphModel"] {
 		schema := buildSchema(
 			dgraphService._explicitType,
 			dgraphService._typeName,
@@ -128,12 +131,6 @@ func NewDgraphService(properties map[string]interface{}) (dbservice.UpsertServic
 		log.Debug("[services.NewDgraphService] ", schema)
 		log.Debug("[services.NewDgraphService] ***************************************************")
 		err = dgraphService._api.BuildSchema(schema)
-	} else {
-		err = dgraphService._api.EnsureConnection()
-	}
-
-	if nil != err {
-		dgraphService = nil
 	}
 
 	return dgraphService, err

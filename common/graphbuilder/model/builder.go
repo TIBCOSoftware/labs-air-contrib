@@ -48,16 +48,17 @@ func (builder *GraphBuilder) BuildGraph(
 	allowNullKey bool,
 ) error {
 
-	//fmt.Println("[GraphBuilder:BuildGraph] entering ........ ")
-	//fmt.Println("[GraphBuilder:BuildGraph] nodes : ", iNodes)
-	//fmt.Println("[GraphBuilder:BuildGraph] edges : ", iEdges)
+	logger.Debug("[GraphBuilder:BuildGraph] entering ........ ")
+	defer logger.Debug("[GraphBuilder:BuildGraph] exit ........ ")
+	logger.Debug("[GraphBuilder:BuildGraph] nodes : ", iNodes)
+	logger.Debug("[GraphBuilder:BuildGraph] edges : ", iEdges)
 
 	nodeMap := make(map[string]*Node)
 	nodes, nodesValid := iNodes.(map[string]interface{})
 	if nodesValid {
 		for nodeConfKey, node := range nodes {
 
-			//fmt.Println("nodekey before = ", nodeConfKey)
+			logger.Debug("nodekey before = ", nodeConfKey)
 			var nodeType string
 			checkPos := strings.LastIndex(nodeConfKey, "_")
 			if 0 <= checkPos && util.IsInteger(nodeConfKey[checkPos+1:len(nodeConfKey)]) {
@@ -65,7 +66,7 @@ func (builder *GraphBuilder) BuildGraph(
 			} else {
 				nodeType = nodeConfKey
 			}
-			//fmt.Println("nodekey after = ", nodeType)
+			logger.Debug("nodekey after = ", nodeType)
 
 			attrs := node.(map[string]interface{})
 			if nil == attrs {
@@ -90,7 +91,7 @@ func (builder *GraphBuilder) BuildGraph(
 	}
 
 	edges, edgesValid := iEdges.(map[string]interface{})
-	//fmt.Println("edges = ", edges, ", edgesValid = ", edgesValid)
+	logger.Debug("edges = ", edges, ", edgesValid = ", edgesValid)
 	if !edgesValid {
 		edges = make(map[string]interface{})
 		for key, _ := range model.GetEdgeDefinitions() {
@@ -106,7 +107,7 @@ func (builder *GraphBuilder) BuildGraph(
 			attrs = make(map[string]interface{})
 		}
 
-		//fmt.Println("attrs = ", attrs)
+		logger.Debug("attrs = ", attrs)
 
 		_skipCondition := false
 		if nil != attrs["_skipCondition"] {
@@ -125,7 +126,6 @@ func (builder *GraphBuilder) BuildGraph(
 	}
 
 	return nil
-	//fmt.Println("[GraphBuilder:BuildGraph] exit ........ ")
 }
 
 func (builder *GraphBuilder) BuildGraphLegacy(
@@ -136,9 +136,11 @@ func (builder *GraphBuilder) BuildGraphLegacy(
 	allowNullKey bool,
 ) {
 
-	//fmt.Println("[GraphBuilder:BuildGraphLegacy] entering ........ ")
-	//	fmt.Println("[GraphBuilder:BuildGraphLegacy] nodes : ", nodes)
-	//	fmt.Println("[GraphBuilder:BuildGraphLegacy] edges : ", edges)
+	logger.Debug("[GraphBuilder:BuildGraphLegacy] entering ........ ")
+	defer logger.Debug("[GraphBuilder:BuildGraphLegacy] exit ........ ")
+
+	logger.Debug("[GraphBuilder:BuildGraphLegacy] nodes : ", nodes)
+	logger.Debug("[GraphBuilder:BuildGraphLegacy] edges : ", edges)
 
 	nodesWrapper, nodesWrapperValid := nodes.([]interface{})
 	nodeMap := make(map[string]*Node)
@@ -148,7 +150,7 @@ func (builder *GraphBuilder) BuildGraphLegacy(
 			if nodesValid {
 				for nodeConfKey, node := range nodes {
 
-					//					fmt.Println("nodekey before = ", nodekey)
+					logger.Debug("nodeType before = ", nodeConfKey)
 					var nodeType string
 					checkPos := strings.LastIndex(nodeConfKey, "_")
 					if 0 <= checkPos && util.IsInteger(nodeConfKey[checkPos+1:len(nodeConfKey)]) {
@@ -156,7 +158,7 @@ func (builder *GraphBuilder) BuildGraphLegacy(
 					} else {
 						nodeType = nodeConfKey
 					}
-					//					fmt.Println("nodekey after = " + nodekey)
+					logger.Debug("nodeType after = " + nodeConfKey)
 
 					var attrs map[string]interface{}
 					attrWrapper, attrWrapperValid := node.([]interface{})
@@ -187,16 +189,16 @@ func (builder *GraphBuilder) BuildGraphLegacy(
 	}
 
 	edgesWrapper, edgesWrapperValid := edges.([]interface{})
-	//fmt.Println("edgesWrapper = ", edgesWrapper, ", edgesWrapperValid = ", edgesWrapperValid)
+	logger.Debug("edgesWrapper = ", edgesWrapper, ", edgesWrapperValid = ", edgesWrapperValid)
 	if edgesWrapperValid {
 		if nil != edgesWrapper[0] {
 			edges, edgesValid := edgesWrapper[0].(map[string]interface{})
-			//fmt.Println("edges = ", edges, ", edgesValid = ", edgesValid)
+			logger.Debug("edges = ", edges, ", edgesValid = ", edgesValid)
 			if edgesValid {
 				for edgeConfKey, edge := range edges {
 					var attrs map[string]interface{}
 					attrWrapper, attrWrapperValid := edge.([]interface{})
-					//fmt.Println("attrWrapper = ", attrWrapper, ", attrWrapperValid = ", attrWrapperValid)
+					logger.Debug("attrWrapper = ", attrWrapper, ", attrWrapperValid = ", attrWrapperValid)
 					if attrWrapperValid && 0 < len(attrWrapper) && nil != attrWrapper[0] {
 						attrs = attrWrapper[0].(map[string]interface{})
 					}
@@ -204,7 +206,7 @@ func (builder *GraphBuilder) BuildGraphLegacy(
 						attrs = make(map[string]interface{})
 					}
 
-					//fmt.Println("attrs = ", attrs)
+					logger.Debug("attrs = ", attrs)
 
 					_skipCondition := false
 					if nil != attrs["_skipCondition"] {
@@ -220,8 +222,6 @@ func (builder *GraphBuilder) BuildGraphLegacy(
 			}
 		}
 	}
-	//fmt.Println("[GraphBuilder:BuildGraphLegacy] exit ........ ")
-
 }
 
 func (builder *GraphBuilder) BuildNode(
@@ -232,7 +232,8 @@ func (builder *GraphBuilder) BuildNode(
 	allowNullKey bool,
 ) *Node {
 
-	//fmt.Println("[GraphBuilder:BuildNode] entering ........ ")
+	logger.Debug("[GraphBuilder:BuildNode] entering ........ ")
+	defer logger.Debug("[GraphBuilder:BuildNode] exit ........ ")
 
 	builder.mux.Lock()
 	defer builder.mux.Unlock()
@@ -255,8 +256,6 @@ func (builder *GraphBuilder) BuildNode(
 		node._attributes[attribute.GetName()] = attribute
 	}
 
-	//fmt.Println("[GraphBuilder:BuildNode] exit ........ ")
-
 	return node
 }
 
@@ -269,7 +268,8 @@ func (builder *GraphBuilder) BuildEdge(
 	allowNullKey bool, /* Not in use */
 ) {
 
-	//fmt.Println("[GraphBuilder:BuildEdge] entering, edgeType = ", edgeType)
+	logger.Debug("[GraphBuilder:BuildEdge] entering, edgeType = ", edgeType)
+	defer logger.Debug("[GraphBuilder:BuildEdge] exit ........ ")
 
 	builder.mux.Lock()
 	defer builder.mux.Unlock()
@@ -302,7 +302,7 @@ func (builder *GraphBuilder) BuildEdge(
 			for i := 0; i < len(keyDefinition); i++ {
 				key[i] = attributesInfo[keyDefinition[i]]
 			}
-			//fmt.Println("[GraphBuilder:BuildEdge] graph.UpsertEdge : ", edgeType, ", key = ", key)
+			logger.Debug("[GraphBuilder:BuildEdge] graph.UpsertEdge : ", edgeType, ", key = ", key)
 			edge := (*graph).UpsertEdge(edgeType, key, fromNode, toNode)
 			for attrKey, attrVal := range attributesInfo {
 				attribute := NewAttribute(edgeModel._attributes[attrKey], attrVal)
@@ -310,8 +310,6 @@ func (builder *GraphBuilder) BuildEdge(
 			}
 		}
 	}
-
-	//fmt.Println("[GraphBuilder:BuildEdge] exit ........ ")
 
 }
 
@@ -322,7 +320,8 @@ func (builder *GraphBuilder) buildVerexes(
 	edgeType string,
 	verticesConfKey map[string]interface{}) (map[NodeId]*Node, map[NodeId]*Node) {
 
-	//fmt.Println("[GraphBuilder:BuildVertices] entering ........ ")
+	logger.Debug("[GraphBuilder:BuildVertices] entering ........ ")
+	defer logger.Debug("[GraphBuilder:BuildVertices] exit ........ ")
 
 	edgeModel := model.GetEdgeDefinition(edgeType)
 
@@ -333,13 +332,14 @@ func (builder *GraphBuilder) buildVerexes(
 	fromNodeConfKey := verticesConfKey["from"]
 	toNodeConfKey := verticesConfKey["to"]
 
-	//fmt.Println("[GraphBuilder:BuildVertices] fromNodeConfKey = ", fromNodeConfKey, ", toNodeConfKey = ", toNodeConfKey)
-	//fmt.Println("[GraphBuilder:BuildVertices] graph = ", graph)
-	//fmt.Println("[GraphBuilder:BuildVertices] edgeModel._fromNodeType = ", edgeModel._fromNodeType, ", edgeModel._toNodeType = ", edgeModel._toNodeType)
+	logger.Debug("[GraphBuilder:BuildVertices] fromNodeConfKey = ", fromNodeConfKey, ", toNodeConfKey = ", toNodeConfKey)
+	logger.Debug("[GraphBuilder:BuildVertices] graph = ", graph)
+	logger.Debug("[GraphBuilder:BuildVertices] nodeMap = ", nodeMap)
+	logger.Debug("[GraphBuilder:BuildVertices] edgeModel._fromNodeType = ", edgeModel._fromNodeType, ", edgeModel._toNodeType = ", edgeModel._toNodeType)
 
 	if nil != fromNodeConfKey {
 		fromNodes = make(map[NodeId]*Node)
-		fromNode := nodeMap[fromNodeConfKey.(string)]
+		fromNode := nodeMap[edgeModel._fromNodeType]
 		fromNodes[fromNode.NodeId] = fromNode
 	} else {
 		fromNodes = (*graph).GetNodesByType(edgeModel._fromNodeType)
@@ -347,18 +347,20 @@ func (builder *GraphBuilder) buildVerexes(
 
 	if nil != toNodeConfKey {
 		toNodes = make(map[NodeId]*Node)
-		toNode := nodeMap[toNodeConfKey.(string)]
+		toNode := nodeMap[edgeModel._toNodeType]
 		toNodes[toNode.NodeId] = toNode
 	} else {
 		toNodes = (*graph).GetNodesByType(edgeModel._toNodeType)
 	}
 
-	//fmt.Println("[GraphBuilder:BuildVertices] exit, fromNodes = ", fromNodes, ", toNodes = ", toNodes)
+	logger.Debug("[GraphBuilder:BuildVertices] exit, fromNodes = ", fromNodes, ", toNodes = ", toNodes)
 
 	return fromNodes, toNodes
 }
 
 func (builder *GraphBuilder) Export(g *Graph, graphModel *GraphDefinition) map[string]interface{} {
+	logger.Debug("[GraphBuilder:Export] entering ........ ")
+	defer logger.Debug("[GraphBuilder:Export] exit ........ ")
 
 	nodeDefinitions := graphModel._nodeDefinitions
 	edgeDefinitions := graphModel._edgeDefinitions
@@ -408,12 +410,14 @@ func (builder *GraphBuilder) Export(g *Graph, graphModel *GraphDefinition) map[s
 	}
 	data["edges"] = edgesData
 
-	//log.Debug("[GraphBuilder::Export] graph : ", data)
+	logger.Debug("[GraphBuilder::Export] graph : ", data)
 
 	return data
 }
 
 func ReconstructGraph(graphData map[string]interface{}) Graph {
+	logger.Debug("[GraphBuilder:ReconstructGraph] entering ........ ")
+	defer logger.Debug("[GraphBuilder:ReconstructGraph] exit ........ ")
 
 	if logger.DebugEnabled() {
 		logger.Debug("[model.ReconstructGraph] graphData : ", graphData)
@@ -449,14 +453,14 @@ func ReconstructGraph(graphData map[string]interface{}) Graph {
 		graph.SetNode(node.NodeId, node)
 	}
 
-	//fmt.Println("Graph : ", graph.GetNodes())
+	logger.Debug("Graph : ", graph.GetNodes())
 
 	edges := util.CastGenMap(graphData["edges"])
 	for _, value := range edges {
 		edgeData := util.CastGenMap(value)
 		fromId := *(&NodeId{}).FromString(util.CastString(edgeData["from"]))
 		toId := *(&NodeId{}).FromString(util.CastString(edgeData["to"]))
-		//fmt.Println("EdgeType : ", edgeData["type"], ", fromID = ", fromId, ", toID = ", toId)
+		logger.Debug("EdgeType : ", edgeData["type"], ", fromID = ", fromId, ", toID = ", toId)
 		edge := NewEdge(
 			util.CastString(edgeData["type"]),
 			util.CastGenArray(edgeData["key"]),

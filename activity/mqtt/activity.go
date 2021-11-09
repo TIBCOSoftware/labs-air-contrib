@@ -30,7 +30,7 @@ func getClient(logger log.Logger, connectionID string, opts *mqtt.ClientOptions)
 	}
 
 	client = mqtt.NewClient(opts)
-	logger.Debug("[mqtt.activity.getClient] Mqtt Publish is establishing a connection...")
+	logger.Info("[mqtt.activity.getClient] Mqtt Publish is establishing a connection, client id : ", connectionID)
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
 		return nil, errors.New(fmt.Sprintf("Connection to mqtt broker failed %v", token.Error()))
 	}
@@ -151,7 +151,7 @@ func New(ctx activity.InitContext) (activity.Activity, error) {
 		options.SetTLSConfig(tlsConfig)
 	}
 
-	mqttClient, err := getClient(ctx.Logger(), settings.Broker, options)
+	mqttClient, err := getClient(ctx.Logger(), settings.Id, options)
 	if nil != err {
 		return nil, err
 	}
@@ -188,8 +188,9 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 	if params := input.TopicParams; len(params) > 0 {
 		topic = a.topic.String(params)
 	}
+	ctx.Logger().Infof("MQTT client publishing, client id : %s, msg : %s", a.settings.Id, input.Message)
 	if token := a.client.Publish(topic, byte(a.settings.Qos), a.settings.Retain, input.Message); token.Wait() && token.Error() != nil {
-		ctx.Logger().Debugf("Error in publishing: %v", err)
+		ctx.Logger().Errorf("Error in publishing: %v", err)
 		return true, token.Error()
 	}
 

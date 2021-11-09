@@ -2,8 +2,10 @@ package mqtt
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -171,7 +173,7 @@ func (t *Trigger) Initialize(ctx trigger.InitContext) error {
 	t.logger = ctx.Logger()
 
 	settings := t.settings
-	options := initClientOption(settings)
+	options := t.initClientOption(settings)
 	t.options = options
 
 	if strings.HasPrefix(settings.Broker, "ssl") {
@@ -226,7 +228,7 @@ func (t *Trigger) Initialize(ctx trigger.InitContext) error {
 	return nil
 }
 
-func initClientOption(settings *Settings) *mqtt.ClientOptions {
+func (t *Trigger) initClientOption(settings *Settings) *mqtt.ClientOptions {
 
 	opts := mqtt.NewClientOptions()
 	opts.AddBroker(settings.Broker)
@@ -251,6 +253,20 @@ func initClientOption(settings *Settings) *mqtt.ClientOptions {
 		opts.SetKeepAlive(2 * time.Second)
 	}
 
+	opts.SetOnConnectHandler(func(client mqtt.Client) {
+		t.logger.Debugf("OnConnectHandler get called: client = %v", client)
+	})
+	opts.SetConnectionLostHandler(func(client mqtt.Client, err error) {
+		t.logger.Debugf("ConnectionLostHandler get called: client = %v", client, ", err = %s", err.Error())
+	})
+	opts.SetReconnectingHandler(func(client mqtt.Client, opts *mqtt.ClientOptions) {
+		t.logger.Debugf("ReconnectingHandler get called: client = %v", client, ", opts = %v", opts)
+	})
+	opts.SetConnectionAttemptHandler(func(broker *url.URL, tlsCfg *tls.Config) *tls.Config {
+		t.logger.Debugf("ConnectionAttemptHandler get called: broker = %v", broker)
+		return nil
+	})
+
 	return opts
 }
 
@@ -259,11 +275,8 @@ func (t *Trigger) Start() error {
 
 	client := mqtt.NewClient(t.options)
 
-	t.logger.Info("Before connect to MQTT ...")
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
 		return token.Error()
-	} else {
-		t.logger.Info("MQTT successfully connected !!")
 	}
 
 	t.client = client

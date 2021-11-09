@@ -83,6 +83,9 @@ func CompareValuesCond(ruleName string, condName string, tuples map[model.TupleT
 	readingTuple := tuples["ReadingEvent"]
 	resourceTuple := tuples["ResourceConcept"]
 
+	log.Debug(fmt.Sprintf("ReadingEvent: [%v]\n", readingTuple))
+	log.Debug(fmt.Sprintf("ResourceConcept: [%v]\n", resourceTuple))
+
 	if readingTuple == nil || resourceTuple == nil || ctx == nil {
 		log.Error("Should not get a nil Reading tuple or no context in compareValuesCond! This is an error")
 		return false
@@ -94,6 +97,8 @@ func CompareValuesCond(ruleName string, condName string, tuples map[model.TupleT
 	if err := json.Unmarshal([]byte(strCtx), &condCtx); err != nil {
 		fmt.Printf("Processing config request ERROR\n")
 	}
+
+	log.Debug(fmt.Sprintf("Condition Context: [%v]\n", condCtx))
 
 	readingTupleDevice, _ := readingTuple.GetString("device")
 	readingTupleResource, _ := readingTuple.GetString("resource")
@@ -111,7 +116,13 @@ func CompareValuesCond(ruleName string, condName string, tuples map[model.TupleT
 		readingTupleValue, err := strconv.ParseFloat(readingTupleValueStr, 64)
 		if err == nil {
 			isNumeric = true
+		} else {
+			log.Debug("parse data error: ", err.Error())
 		}
+
+		log.Debug("isNumeric: ", isNumeric)
+
+		log.Debug("condCtx.CompareNewMetricToValue: ", condCtx.CompareNewMetricToValue, ", condCtx.CompareNewMetricToLastMetric: ", condCtx.CompareNewMetricToLastMetric, ", condCtx.CompareLastMetricToValue: ", condCtx.CompareLastMetricToValue)
 
 		if condCtx.CompareNewMetricToValue {
 
@@ -162,7 +173,7 @@ func CompareValuesCond(ruleName string, condName string, tuples map[model.TupleT
 
 		}
 
-		if condResult && condCtx.CompareNewMetricToLastMetric {
+		if condCtx.CompareNewMetricToLastMetric {
 
 			if isNumeric {
 				// compare numbers
@@ -209,7 +220,7 @@ func CompareValuesCond(ruleName string, condName string, tuples map[model.TupleT
 
 		}
 
-		if condResult && condCtx.CompareLastMetricToValue {
+		if condCtx.CompareLastMetricToValue {
 
 			if isNumeric {
 				// compare numbers
