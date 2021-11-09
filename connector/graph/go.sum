@@ -4,8 +4,14 @@ github.com/TIBCOSoftware/flogo-lib v0.5.8/go.mod h1:AE7tfFBvQNemM61frHCwTJYBWC9+
 github.com/TIBCOSoftware/labs-air-contrib v0.6.0 h1:FgRnXaHCTqj6kShLBoE8N9CXNH7iNAH07u9201lvUsg=
 github.com/TIBCOSoftware/labs-air-contrib/common/graphbuilder/model v0.0.0-20211106021439-f2355b68f1a9 h1:HtmTOjABzSQwy+0LxM5aIto0zzuynj1sjCoNcjbiLTo=
 github.com/TIBCOSoftware/labs-air-contrib/common/graphbuilder/model v0.0.0-20211106021439-f2355b68f1a9/go.mod h1:jcOxChtFva8QAWh4XdokDAw4nK2ExTL8Vjg/MXs7U9o=
+github.com/TIBCOSoftware/labs-air-contrib/common/graphbuilder/model v0.0.0-20211108192823-a02b76b6c72a h1:p2ZpHC7iDSJbkptOzQsYLtNltwcEbFvyItuIpeEPvc4=
+github.com/TIBCOSoftware/labs-air-contrib/common/graphbuilder/model v0.0.0-20211108192823-a02b76b6c72a/go.mod h1:jcOxChtFva8QAWh4XdokDAw4nK2ExTL8Vjg/MXs7U9o=
+github.com/TIBCOSoftware/labs-air-contrib/common/graphbuilder/model v0.0.0-20211109031643-d7434075b902 h1:7JqxHdma5ZJTBSGf0N9EtNBwjwqZD2fRxIcisL9+U0A=
+github.com/TIBCOSoftware/labs-air-contrib/common/graphbuilder/model v0.0.0-20211109031643-d7434075b902/go.mod h1:aX/fcWJBCv6UuBJBWcIHYMEsBW5ZvH4tWY5Mchz7kEw=
 github.com/TIBCOSoftware/labs-lightcrane-contrib/common/util v0.0.0-20211105225528-a6bdba334053 h1:i13BQG9aMZjYA1VqE4Iq6c87uwOF/r/9iUFz0KZ8mTM=
 github.com/TIBCOSoftware/labs-lightcrane-contrib/common/util v0.0.0-20211105225528-a6bdba334053/go.mod h1:LWgkjkFF4QZONdGBbjZ5lox8j4BmxfdbEyJqIWElXDA=
+github.com/TIBCOSoftware/labs-lightcrane-contrib/common/util v0.0.0-20211106041959-0e3d6a8508ef h1:O5ziLuet/BEoZzl/l7Vl9TweMXrG+EgMtIBsa6m3wsk=
+github.com/TIBCOSoftware/labs-lightcrane-contrib/common/util v0.0.0-20211106041959-0e3d6a8508ef/go.mod h1:LWgkjkFF4QZONdGBbjZ5lox8j4BmxfdbEyJqIWElXDA=
 github.com/araddon/dateparse v0.0.0-20190622164848-0fb0a474d195 h1:c4mLfegoDw6OhSJXTd2jUEQgZUQuJWtocudb97Qn9EM=
 github.com/araddon/dateparse v0.0.0-20190622164848-0fb0a474d195/go.mod h1:SLqhdZcd+dF3TEVL2RMoob5bBP5R1P1qkox+HtCBgGI=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

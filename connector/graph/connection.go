@@ -62,6 +62,7 @@ func (this *GraphFactory) NewManager(settings map[string]interface{}) (connectio
 	if cName == "" {
 		return nil, errors.New("Required Parameter Name is missing")
 	}
+	logCache.Debug("[GraphFactory:NewManager] Graph Name : ", cName)
 
 	//cModelSource := s.ModelSource
 	//	if cModelSource == "" {
@@ -72,16 +73,19 @@ func (this *GraphFactory) NewManager(settings map[string]interface{}) (connectio
 	if cModel == "" {
 		return nil, errors.New("Required Parameter Model is missing")
 	}
+	logCache.Debug("[GraphFactory:NewManager] Graph Model : ", cModel)
 
 	cMetadata := s.Metadata
 	if cMetadata == "" {
 		return nil, errors.New("Required Parameter Metadata is missing")
 	}
+	logCache.Debug("[GraphFactory:NewManager] Graph Metadata : ", cMetadata)
 
 	model, err := model.NewGraphModel(cName, cMetadata)
 	if nil != err {
 		return nil, err
 	}
+	logCache.Debug("[GraphFactory:NewManager] Graph Model Object : ", model)
 
 	sharedConn.name = cName
 	sharedConn.model = model
