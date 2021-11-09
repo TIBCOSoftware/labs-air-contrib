@@ -91,6 +91,14 @@ func (s *Settings) ToMap() map[string]interface{} {
 		"schemaGen":   s.SchemaGen,
 	}
 
+	password := s.Password
+	if strings.HasPrefix(password, "SECRET:") {
+		pwdBytes, err := b64.StdEncoding.DecodeString(password[7:])
+		if nil == err {
+			properties["password"] = string(pwdBytes)
+		}
+	}
+
 	if s.TLSEnabled {
 		if "" != s.TLS {
 			content, err := coerce.ToType(s.TLS, data.TypeObject)
@@ -179,9 +187,9 @@ func (this *SharedDgraphManager) Lookup(clientID string, properties map[string]i
 			properties[key] = value
 		}
 		this.dgraphService, err = services.NewDgraphService(properties)
-		logCache.Info("(DgraphServiceFactory.CreateUpsertService) upsertService : ", this.dgraphService)
+		logCache.Info("(SharedDgraphManager.Lookup) upsertService : ", this.dgraphService)
 		if nil != err {
-			logCache.Info("(DgraphServiceFactory.CreateUpsertService) err : ", err)
+			logCache.Info("(SharedDgraphManager.Lookup) err : ", err)
 			return nil, err
 		}
 	}
