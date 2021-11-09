@@ -65,7 +65,7 @@ var logCache = log.ChildLogger(log.RootLogger(), "labs-lc-activity-graphbuilder"
 func (a *Activity) Eval(context activity.Context) (done bool, err error) {
 
 	logCache.Debug("[BuilderActivity:Eval] entering ........ ")
-	logCache.Debug("[BuilderActivity:Eval] Exit ........ ")
+	defer logCache.Debug("[BuilderActivity:Eval] Exit ........ ")
 
 	input := &Input{}
 	err = context.GetInputObject(input)
@@ -74,8 +74,8 @@ func (a *Activity) Eval(context activity.Context) (done bool, err error) {
 	}
 
 	logCache.Debug("[BuilderActivity:Eval] BatchEnd : ", input.BatchEnd)
-	logCache.Info("[BuilderActivity:Eval] Nodes : ", input.Nodes)
-	logCache.Info("[BuilderActivity:Eval] Edges : ", input.Edges)
+	logCache.Debug("[BuilderActivity:Eval] Nodes : ", input.Nodes)
+	logCache.Debug("[BuilderActivity:Eval] Edges : ", input.Edges)
 
 	_, err = a.graphMgr.BuildGraph(input.Nodes, input.Edges, a.allowNullKey)
 
@@ -91,7 +91,7 @@ func (a *Activity) Eval(context activity.Context) (done bool, err error) {
 
 		passThroughDataDef := a.buildPassThroughData(context)
 		if 0 != len(passThroughDataDef) {
-			logCache.Info("[BuilderActivity:Eval] PassThroughData : ", input.PassThroughData)
+			logCache.Debug("[BuilderActivity:Eval] PassThroughData : ", input.PassThroughData)
 			passThroughData := input.PassThroughData.(map[string]interface{})
 			passThroughDataOut := make(map[string]interface{})
 			for name, attrDef := range passThroughDataDef {
@@ -118,7 +118,7 @@ func (a *Activity) Eval(context activity.Context) (done bool, err error) {
 
 func (a *Activity) buildPassThroughData(context activity.Context) map[string]*Field {
 	passThroughData := make(map[string]*Field)
-	logCache.Info("Processing handlers : PassThroughData = ", a.passThrough)
+	logCache.Debug("Processing handlers : PassThroughData = ", a.passThrough)
 
 	for _, passThroughFieldname := range a.passThrough {
 		passThroughFieldnameInfo := passThroughFieldname.(map[string]interface{})
