@@ -7,3 +7,5 @@ For more information please visit [Project AIR](https://tibcosoftware.github.io/
 ## Introduction
 
 These components are different [Project Flogo](https://www.flogo.io) extensions that form the contributions for the Project AIR services.
+
+![Logo](https://tibcosoftware.github.io/TIBCO-LABS/about/tibcolabs-brand.png "Labs Logo")
