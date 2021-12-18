@@ -2,7 +2,9 @@ package air
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
+	"reflect"
 	"strings"
 
 	"github.com/project-flogo/core/data"
@@ -71,9 +73,13 @@ func (this *KeywordReplaceHandler) startToMap() {
 func (this *KeywordReplaceHandler) Replace(keyword string) string {
 	keyElements := strings.Split(keyword, ".")
 	if "f1" == keyElements[0] {
-		data, ok := this.reading[keyElements[2]].(string)
-		if ok {
-			return strings.ReplaceAll(data, "\"", "\\\"")
+		data := this.reading[keyElements[2]]
+		dataType := reflect.ValueOf(data).Kind()
+		if reflect.String == dataType {
+			return strings.ReplaceAll(data.(string), "\"", "\\\"")
+		} else if reflect.Map == dataType || reflect.Array == dataType {
+			jsonBuf, _ := json.Marshal(data)
+			return fmt.Sprintf("%v", string(jsonBuf))
 		}
 		return fmt.Sprintf("%v", this.reading[keyElements[2]])
 	} else {
