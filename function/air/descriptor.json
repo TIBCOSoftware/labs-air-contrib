@@ -441,6 +441,20 @@
             }
         },
         {
+            "name": "ensurejson",
+            "description": "Returns an json string",
+            "example": "f1.ensurejson('{}') => '{}'",
+            "args": [
+                {
+                    "name": "jsonstr",
+                    "type": "string"
+                }
+            ],
+            "return": {
+                "type": "string"
+            }
+        },
+        {
             "name": "json2object",
             "description": "Returns an object",
             "example": "f1.json2object('{}') => empty object",
