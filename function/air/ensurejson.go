@@ -1,8 +1,9 @@
 package air
 
 import (
-	"encoding/json"
+	//	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/project-flogo/core/data"
 	"github.com/project-flogo/core/data/expression/function"
@@ -32,20 +33,28 @@ func (fnEnsureJson) Eval(params ...interface{}) (interface{}, error) {
 		log.Error("(fnEnsureJson.Eval) err : ", err.Error())
 		return in, err
 	}
+	/*
+		var rootObject interface{}
+		err := json.Unmarshal([]byte(in), &rootObject)
+		if nil != err {
+			log.Error("(fnEnsureJson.Eval) build object, err : ", err.Error())
+			return in, err
+		}
 
-	var rootObject interface{}
-	err := json.Unmarshal([]byte(in), &rootObject)
+		log.Debug("(fnEnsureJson.Eval) rootObject : ", rootObject)
+
+		jsonBytes, err := json.Marshal(rootObject)
+		if nil != err {
+			log.Error("(fnEnsureJson.Eval) object to string, err : ", err.Error())
+			return in, err
+		}
+	*/
+
+	jsonStr, err := strconv.Unquote(in)
 	if nil != err {
-		log.Error("(fnEnsureJson.Eval) build object, err : ", err.Error())
+		log.Error("(fnEnsureJson.Eval) Unquote fail, err : ", err.Error())
 		return in, err
 	}
 
-	log.Debug("(fnEnsureJson.Eval) rootObject : ", rootObject)
-
-	jsonStr, err := json.Marshal(rootObject)
-	if nil != err {
-		log.Error("(fnEnsureJson.Eval) object to string, err : ", err.Error())
-		return in, err
-	}
-	return string(jsonStr), nil
+	return jsonStr, nil
 }
