@@ -1,5 +1,9 @@
 package air
 
+/*
+	This function doesn't depend on EdgeX schema
+*/
+
 import (
 	"errors"
 
