@@ -1,5 +1,9 @@
 package air
 
+/*
+	!!! This function DO depend on EdgeX schema !!!
+*/
+
 import (
 	"fmt"
 
@@ -36,13 +40,13 @@ func (fnAirData2ArrayOld) Eval(params ...interface{}) (interface{}, error) {
 		log.Debug("(fnAirData2ArrayOld.Eval) new value ========>", value)
 		enriched := value.(map[string]interface{})
 		readingArray = append(readingArray, map[string]interface{}{
-			"id":        fmt.Sprintf("%s_%s", reading["id"], enriched["name"]),
-			"origin":    reading["origin"],
-			"device":    reading["device"],
-			"name":      fmt.Sprintf("%s_%s", reading["name"], enriched["name"]),
-			"value":     enriched["value"],
-			"valueType": enriched["type"],
-			"mediaType": reading["mediaType"],
+			"id":           fmt.Sprintf("%s_%s", reading["id"], enriched["name"]),
+			"origin":       reading["origin"],
+			"deviceName":   reading["deviceName"],
+			"resourceName": fmt.Sprintf("%s_%s", reading["resourceName"], enriched["name"]),
+			"value":        enriched["value"],
+			"valueType":    enriched["type"],
+			"mediaType":    reading["mediaType"],
 		})
 	}
 
