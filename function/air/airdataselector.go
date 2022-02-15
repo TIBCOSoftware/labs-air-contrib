@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/TIBCOSoftware/labs-lightcrane-contrib/common/objectbuilder"
 	"github.com/project-flogo/core/data"
 	"github.com/project-flogo/core/data/expression/function"
 )
