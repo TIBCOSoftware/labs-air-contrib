@@ -36,8 +36,12 @@ func (fnAirData2Array) Eval(params ...interface{}) (interface{}, error) {
 	for _, value := range enriched {
 		log.Debug("(fnAirData2Array.Eval) new value : ", value)
 		enriched := value.(map[string]interface{})
+		newId := fmt.Sprintf("%s_%s", reading["id"], enriched["name"])
+		if nil != enriched["producer"] && "" != enriched["producer"] {
+			newId = fmt.Sprintf("%s_%s:%s", reading["id"], enriched["producer"], enriched["name"])
+		}
 		readingArray = append(readingArray, map[string]interface{}{
-			"id":           fmt.Sprintf("%s_%s", reading["id"], enriched["name"]),
+			"id":           newId,
 			"origin":       reading["origin"],
 			"deviceName":   reading["deviceName"],
 			"resourceName": fmt.Sprintf("%s_%s", reading["resourceName"], enriched["name"]),
