@@ -264,7 +264,7 @@ func (this *RuleEngine) compareValuesCond(ruleName string, condName string, tupl
 
 // Send notification whenever a compare value condition is true
 func (this *RuleEngine) compareValuesAction(ctx context.Context, rs model.RuleSession, ruleName string, tuples map[model.TupleType]model.Tuple, ruleCtx model.RuleContext) {
-	log.Debug(fmt.Sprintf("Rule fired: rule = [%s], tuple =[%v]\n", ruleName, tuples))
+	log.Debug(fmt.Sprintf("Rule fired (new): rule = [%s], tuple =[%v]\n", ruleName, tuples))
 
 	readingTuple := tuples["ReadingEvent"]
 	resourceTuple := tuples["ResourceConcept"]
