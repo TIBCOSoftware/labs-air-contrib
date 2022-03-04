@@ -8,9 +8,9 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/TIBCOSoftware/flogo-lib/logger"
 	"github.com/TIBCOSoftware/labs-air-contrib/activity/rules/internal/sender"
 	"github.com/TIBCOSoftware/labs-air-contrib/common/rules/air/rules"
-	"github.com/TIBCOSoftware/flogo-lib/logger"
 	"github.com/project-flogo/rules/common/model"
 	"github.com/project-flogo/rules/config"
 	"github.com/project-flogo/rules/ruleapi"
@@ -287,11 +287,11 @@ func (this *RuleEngine) compareValuesAction(ctx context.Context, rs model.RuleSe
 		commandContext := map[string]interface{}{
 			"gateway": gateway,
 			"reading": map[string]interface{}{
-				"origin": ts,
-				"id":     uuid,
-				"device": device,
-				"name":   resource,
-				"value":  value,
+				"origin":       ts,
+				"id":           uuid,
+				"deviceName":   device,
+				"resourceName": resource,
+				"value":        value,
 			},
 			"enriched": []interface{}{
 				map[string]interface{}{
