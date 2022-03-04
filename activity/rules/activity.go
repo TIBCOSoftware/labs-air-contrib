@@ -58,7 +58,7 @@ func (a *Rules) Metadata() *activity.Metadata {
 }
 
 func (a *Rules) Eval(context activity.Context) (done bool, err error) {
-	log.Info("[Rules:Eval] entering ........ data = ", context.GetInput(iData))
+	log.Info("[Eval] entering ........ data = ", context.GetInput(iData))
 
 	data, ok := context.GetInput(iData).(map[string]interface{})
 	if !ok {
@@ -100,7 +100,7 @@ func (a *Rules) Eval(context activity.Context) (done bool, err error) {
 
 	context.SetOutput(oSuccess, true)
 
-	log.Info("[Rules:Eval] exit ........ ")
+	log.Info("[Eval] exit ........ ")
 
 	return true, nil
 }
