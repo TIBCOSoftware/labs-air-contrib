@@ -1,7 +1,6 @@
 package air
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/project-flogo/core/data"
