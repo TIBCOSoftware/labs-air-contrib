@@ -395,6 +395,24 @@
             }
         },
         {
+            "name": "epoch2timestamp",
+            "description": "long type epoch milisecond to string type timestamp",
+            "example": "f1.epoch2timestamp(1351700038292, '2006-01-02 15:04:05') => '2012-10-31 16:13:58'",
+            "args": [
+                {
+                    "name": "epochTime",
+                    "type": "int"
+                },
+                {
+                    "name": "format",
+                    "type": "string"
+                }
+            ],
+            "return": {
+                "type": "string"
+            }
+        },
+        {
             "name": "isnull",
             "description": "Returns true : the input object is null ",
             "example": "f1.isnull(<null object>) => true",
