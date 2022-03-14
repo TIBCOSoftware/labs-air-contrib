@@ -12,12 +12,12 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/TIBCOSoftware/flogo-lib/core/activity"
+	"github.com/TIBCOSoftware/flogo-lib/logger"
 	"github.com/TIBCOSoftware/labs-air-contrib/activity/rules/internal/rules"
 	"github.com/TIBCOSoftware/labs-air-contrib/common/notification/notificationbroker"
 	kwr "github.com/TIBCOSoftware/labs-lightcrane-contrib/common/keywordreplace"
 	"github.com/TIBCOSoftware/labs-lightcrane-contrib/common/util"
-	"github.com/TIBCOSoftware/flogo-lib/core/activity"
-	"github.com/TIBCOSoftware/flogo-lib/logger"
 )
 
 var log = logger.GetLogger("tibco-f1-Rules")
@@ -31,9 +31,9 @@ const (
 	sTargets      = "targets"
 	iData         = "Data"
 	iGateway      = "gateway"
-	iDevice       = "device"
+	iDevice       = "deviceName"
 	iEventID      = "id"
-	iName         = "name"
+	iName         = "resourceName"
 	iValue        = "value"
 	oSuccess      = "Success"
 )
@@ -58,7 +58,7 @@ func (a *Rules) Metadata() *activity.Metadata {
 }
 
 func (a *Rules) Eval(context activity.Context) (done bool, err error) {
-	log.Info("[Rules:Eval] entering ........ data = ", context.GetInput(iData))
+	log.Info("(Eval) entering ........ data = ", context.GetInput(iData))
 
 	data, ok := context.GetInput(iData).(map[string]interface{})
 	if !ok {
@@ -66,11 +66,11 @@ func (a *Rules) Eval(context activity.Context) (done bool, err error) {
 	}
 	gateway, ok := data[iGateway].(string)
 	if !ok {
-		return false, errors.New("Invalid device ... ")
+		return false, errors.New("Invalid gateway ... ")
 	}
 	device, ok := data[iDevice].(string)
 	if !ok {
-		return false, errors.New("Invalid device ... ")
+		return false, errors.New("Invalid deviceName ... ")
 	}
 	eventID, ok := data[iEventID].(string)
 	if !ok {
@@ -78,14 +78,14 @@ func (a *Rules) Eval(context activity.Context) (done bool, err error) {
 	}
 	name, ok := data[iName].(string)
 	if !ok {
-		return false, errors.New("Invalid name ... ")
+		return false, errors.New("Invalid resourceName ... ")
 	}
 	value := data[iValue].(string)
 	if !ok {
 		return false, errors.New("Invalid value ... ")
 	}
 
-	log.Info(fmt.Sprintf("Received event from eventID: %s gateway: %s device: %s instrument: %s value: %s", eventID, gateway, device, name, value))
+	log.Info(fmt.Sprintf("Received event from eventID: %s gateway: %s deviceName: %s instrument: %s value: %s", eventID, gateway, device, name, value))
 
 	engine, err := a.getRuleEngine(context)
 	if nil != err {
@@ -100,7 +100,7 @@ func (a *Rules) Eval(context activity.Context) (done bool, err error) {
 
 	context.SetOutput(oSuccess, true)
 
-	log.Info("[Rules:Eval] exit ........ ")
+	log.Info("(Eval) exit ........ ")
 
 	return true, nil
 }

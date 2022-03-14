@@ -9,7 +9,7 @@ import (
 	"github.com/project-flogo/core/data/expression/function"
 )
 
-var log = logger.GetLogger("tibco-f1_functions")
+var log = logger.GetLogger("tibco-air_functions")
 
 func init() {
 	function.Register(&fnEscapeK8sID{})
