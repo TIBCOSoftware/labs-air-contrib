@@ -1,7 +1,6 @@
 package air
 
 import (
-	"bytes"
 	b64 "encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -30,7 +29,7 @@ func (fnToBase64String) Eval(params ...interface{}) (interface{}, error) {
 
 	log.Debug("(fnToBase64String.Eval) params[0] : ", params[0])
 
-	if nill == params[0] {
+	if nil == params[0] {
 		return nil, fmt.Errorf("(fnToBase64String.Eval) Illegal data : nil")
 	}
 
