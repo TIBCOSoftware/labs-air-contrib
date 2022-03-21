@@ -32,9 +32,11 @@ func (fnAirDataSelector) Eval(params ...interface{}) (interface{}, error) {
 	reading := params[1].(map[string]interface{})
 	reading["gateway"] = params[0]
 	enriched := make(map[string]interface{})
-	for _, element := range params[2].([]interface{}) {
-		enrichedElement := element.(map[string]interface{})
-		enriched[fmt.Sprintf("%s..%s", enrichedElement["producer"], enrichedElement["name"])] = enrichedElement["value"]
+	if nil != params[2] {
+		for _, element := range params[2].([]interface{}) {
+			enrichedElement := element.(map[string]interface{})
+			enriched[fmt.Sprintf("%s..%s", enrichedElement["producer"], enrichedElement["name"])] = enrichedElement["value"]
+		}
 	}
 	format := params[3].(string)
 
