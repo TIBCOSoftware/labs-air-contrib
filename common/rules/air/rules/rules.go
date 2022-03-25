@@ -10,7 +10,7 @@ import (
 	"github.com/project-flogo/rules/common/model"
 )
 
-var log = logger.GetLogger("tibco-f1-dynamic")
+var log = logger.GetLogger("tibco-f1-rule")
 
 // conditionCtxStruct - structure use to pass context to conditions
 type conditionCtxStruct struct {
@@ -104,6 +104,11 @@ func CompareValuesCond(ruleName string, condName string, tuples map[model.TupleT
 	readingTupleResource, _ := readingTuple.GetString("resource")
 	resourceTupleDevice, _ := resourceTuple.GetString("device")
 	resourceTupleResource, _ := resourceTuple.GetString("resource")
+
+	log.Debug("readingTupleDevice: ", readingTupleDevice)
+	log.Debug("readingTupleResource: ", readingTupleResource)
+	log.Debug("resourceTupleDevice: ", resourceTupleDevice)
+	log.Debug("resourceTupleResource: ", resourceTupleResource)
 
 	if readingTupleResource == condCtx.Resource && readingTupleDevice == condCtx.Device &&
 		resourceTupleResource == condCtx.Resource && resourceTupleDevice == condCtx.Device {
