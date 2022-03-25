@@ -367,6 +367,25 @@
             }
         },
         {
+            "name": "airevaluatecondition",
+            "description": "Returns the boolean value of conditions",
+            "args": [
+                {
+                    "name": "reading",
+                    "type": "object"
+                },
+                {
+                    "name": "condition",
+                    "type": "array",
+                    "valueType": "object"
+                }
+            ],
+            "return": {
+                "type": "array",
+                "valueType": "boolean"
+            }
+        },
+        {
             "name": "isempty",
             "description": "Returns true : the input object has no entry ",
             "example": "f1.isempty({}) => true",
