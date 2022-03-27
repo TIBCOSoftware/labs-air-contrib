@@ -1,0 +1,46 @@
+{
+    "name": "error",
+    "version": "1.0.0",
+    "title": "Rule Engine",
+    "author": "TIBCO Software Inc.",
+    "type": "flogo:activity",
+    "display": {
+       "category": "LC",
+       "visible": true,
+       "smallIcon": "error.png",
+       "description": "This activity trigger error handling"
+    },
+	"ref": "github.com/TIBCOSoftware/labs-air-contrib/activity/error",
+    "inputs": [
+ 		{
+			"name": "Activity",
+			"type": "string"
+		},		
+ 		{
+			"name": "Message",
+			"type": "string"
+		},		
+ 		{
+			"name": "Data",
+			"type": "string"
+		},		
+ 		{
+			"name": "Gateway",
+			"type": "string"
+		},		
+ 		{
+			"name": "Reading",
+			"type": "object"
+		},		
+		{
+            "name": "Enriched",
+            "type": "object"
+		}
+    ],
+	"outputs": [
+ 		{
+			"name": "Success",
+			"type": "boolean"
+		}
+	]
+}
