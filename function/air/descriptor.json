@@ -432,6 +432,20 @@
             }
         },
         {
+            "name": "epoch2ms",
+            "description": "epoch us, ms, ns to ms",
+            "example": "f1.epoch2ms(135170003829200000000) => 1351700038292",
+            "args": [
+                {
+                    "name": "epochTime",
+                    "type": "int"
+                }
+            ],
+            "return": {
+                "type": "int"
+            }
+        },
+        {
             "name": "isnull",
             "description": "Returns true : the input object is null ",
             "example": "f1.isnull(<null object>) => true",
