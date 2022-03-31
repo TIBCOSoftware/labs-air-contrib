@@ -2,6 +2,7 @@ package air
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/project-flogo/core/data"
 	"github.com/project-flogo/core/data/expression/function"
@@ -19,20 +20,38 @@ func (fnAirEvaluateCondition) Name() string {
 }
 
 func (fnAirEvaluateCondition) Sig() (paramTypes []data.Type, isVariadic bool) {
-	return []data.Type{data.TypeObject, data.TypeArray}, false
+	return []data.Type{data.TypeString, data.TypeObject, data.TypeArray, data.TypeArray, data.TypeInt}, false
 }
 
 func (fnAirEvaluateCondition) Eval(params ...interface{}) (interface{}, error) {
-	if nil == params[1] {
-		return make([]bool, 0), nil
+	if nil == params[3] {
+		size := params[4].(int)
+		results := make([]bool, size)
+		for index := 0; index < size; index++ {
+			results[index] = false
+		}
+		return results, nil
 	}
 
-	conditions, ok := params[1].([]interface{})
+	conditions, ok := params[3].([]interface{})
 	if !ok {
 		return false, errors.New("ERROR! Not an array!")
 	}
 
-	reading := params[0].(map[string]interface{})
+	data := make(map[string]interface{})
+	data["gateway"] = params[0]
+	if nil != params[1] {
+		for key, value := range params[1].(map[string]interface{}) {
+			data[key] = value
+		}
+	}
+	if nil != params[2] {
+		for _, element := range params[2].([]interface{}) {
+			enrichedElement := element.(map[string]interface{})
+			data[fmt.Sprintf("%s.%s", enrichedElement["producer"], enrichedElement["name"])] = enrichedElement["value"]
+		}
+	}
+
 	results := make([]bool, len(conditions))
 	for index, element := range conditions {
 		condition, ok := element.(map[string]interface{})
@@ -41,7 +60,7 @@ func (fnAirEvaluateCondition) Eval(params ...interface{}) (interface{}, error) {
 		}
 		results[index] = true
 		for key, value := range condition {
-			if reading[key] != value {
+			if data[key] != value {
 				results[index] = false
 				break
 			}

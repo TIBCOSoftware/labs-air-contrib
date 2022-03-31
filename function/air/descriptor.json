@@ -371,13 +371,26 @@
             "description": "Returns the boolean value of conditions",
             "args": [
                 {
+                    "name": "gateway",
+                    "type": "string"
+                },
+                {
                     "name": "reading",
                     "type": "object"
+                },
+                {
+                    "name": "enriched",
+                    "type": "array",
+                    "valueType": "object"
                 },
                 {
                     "name": "condition",
                     "type": "array",
                     "valueType": "object"
+                },
+                {
+                    "name": "conditionSize",
+                    "type": "int"
                 }
             ],
             "return": {
