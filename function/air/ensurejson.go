@@ -28,8 +28,11 @@ func (fnEnsureJson) Sig() (paramTypes []data.Type, isVariadic bool) {
 func (fnEnsureJson) Eval(params ...interface{}) (interface{}, error) {
 	log.Debug("(fnEnsureJson.Eval) params[0] : ", params[0])
 
-	in, ok := params[0].(string)
-	if !ok {
+	in, isString := params[0].(string)
+	if !isString {
+		if bin, isBytes := params[0].([]byte); isBytes {
+			return bin, nil
+		}
 		err := fmt.Errorf("Illegal parameter!")
 		log.Error("(fnEnsureJson.Eval) err : ", err.Error())
 		return in, err
