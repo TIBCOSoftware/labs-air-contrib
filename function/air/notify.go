@@ -36,14 +36,18 @@ func (fnNotify) Eval(params ...interface{}) (interface{}, error) {
 	matchings := params[4].([]interface{})
 	notifier := params[5].(string)
 
-	target, error := getTarget(reading, enriched, params[3])
+	template := params[3].(string)
+	iTarget, error := getTarget(reading, enriched, template)
 	if nil != error {
 		return nil, error
 	}
 
+	target := iTarget.(string)
+
 	log.Info("(fnNotify.Eval) gateway : ", gateway)
 	log.Info("(fnNotify.Eval) reading : ", reading)
 	log.Info("(fnNotify.Eval) enriched : ", enriched)
+	log.Info("(fnNotify.Eval) target : ", target)
 
 	matched := false
 	matchType := ""
@@ -98,20 +102,28 @@ func (fnNotify) Eval(params ...interface{}) (interface{}, error) {
 	return nil, nil
 }
 
-func getTarget(reading map[string]interface{}, origEnriched []interface{}, format interface{}) (string, error) {
+func getTarget(reading map[string]interface{}, origEnriched []interface{}, template string) (interface{}, error) {
 
-	enriched := make(map[string]interface{})
+	dataMap := make(map[string]interface{})
+	for key, value := range reading { // reading
+		dataMap[fmt.Sprintf("f1..%s", key)] = value
+	}
 	for _, element := range origEnriched {
 		enrichedElement := element.(map[string]interface{})
-		enriched[fmt.Sprintf("%s..%s", enrichedElement["producer"], enrichedElement["name"])] = enrichedElement["value"]
+		dataMap[fmt.Sprintf("%s..%s", enrichedElement["producer"], enrichedElement["name"])] = enrichedElement["value"]
 	}
 
-	data := NewKeywordMapper("@", "@").Replace(
-		format.(string),
-		NewKeywordReplaceHandler(reading, enriched),
-	)
+	log.Debug("(getTarget) input dataMap : ", dataMap)
+	log.Debug("(getTarget) input template : ", template)
 
-	log.Debug("(notifier.getTarget) out data string : ", data)
+	data := dataMap[template[1:len(template)-1]]
+	if nil == data {
+		data = NewKeywordMapper("@", "@").Replace(
+			template,
+			NewKeywordReplaceHandler(dataMap),
+		)
+	}
+	log.Debug("(notifier.getTarget) out data : ", data)
 
 	return data, nil
 }
