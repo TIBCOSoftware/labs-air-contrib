@@ -67,7 +67,7 @@
 	"outputs": [
  		{
 			"name": "ExtractedData",
-			"type": "object"
+			"type": "any"
 		}
 	]
 }

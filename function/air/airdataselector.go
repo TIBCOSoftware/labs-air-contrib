@@ -2,12 +2,9 @@ package air
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
-	"reflect"
-	"strings"
 
-	"github.com/TIBCOSoftware/labs-lightcrane-contrib/common/objectbuilder"
+	"github.com/TIBCOSoftware/labs-air-contrib/common/util"
 	"github.com/project-flogo/core/data"
 	"github.com/project-flogo/core/data/expression/function"
 )
@@ -29,176 +26,65 @@ func (fnAirDataSelector) Sig() (paramTypes []data.Type, isVariadic bool) {
 
 func (fnAirDataSelector) Eval(params ...interface{}) (interface{}, error) {
 	// f1.airdataselector($flow.gateway, $flow.reading, $flow.enriched, $property["Python.DataIn"])
-	reading := params[1].(map[string]interface{})
-	reading["gateway"] = params[0]
-	enriched := make(map[string]interface{})
-	if nil != params[2] {
+	dataMap := make(map[string]interface{})
+	dataMap["f1..gateway"] = params[0]                           // gateway
+	for key, value := range params[1].(map[string]interface{}) { // reading
+		dataMap[fmt.Sprintf("f1..%s", key)] = value
+	}
+	if nil != params[2] { // enriched
 		for _, element := range params[2].([]interface{}) {
 			enrichedElement := element.(map[string]interface{})
-			enriched[fmt.Sprintf("%s..%s", enrichedElement["producer"], enrichedElement["name"])] = enrichedElement["value"]
+			dataMap[fmt.Sprintf("%s..%s", enrichedElement["producer"], enrichedElement["name"])] = enrichedElement["value"]
 		}
 	}
-	format := params[3].(string)
 
-	log.Debug("(fnAirDataSelector.Eval) in reading : ", reading)
-	log.Debug("(fnAirDataSelector.Eval) in enriched : ", enriched)
-	log.Debug("(fnAirDataSelector.Eval) in format : ", format)
+	template := params[3].(string)
 
-	data := NewKeywordMapper("@", "@").Replace(
-		format,
-		NewKeywordReplaceHandler(reading, enriched),
-	)
+	log.Debug("(fnAirDataSelector.Eval) input dataMap : ", dataMap)
+	log.Debug("(fnAirDataSelector.Eval) input template : ", template)
 
-	log.Debug("(fnAirDataSelector.Eval) out data string : ", data)
+	data := util.ExtractData(dataMap, template[1:len(template)-1])
+	if nil == data {
+		data = NewKeywordMapper("@", "@").Replace(
+			template,
+			NewKeywordReplaceHandler(dataMap),
+		)
+	}
+
+	log.Debug("(fnAirDataSelector.Eval) out data : ", data)
 
 	return data, nil
 }
 
 func NewKeywordReplaceHandler(
-	reading map[string]interface{},
-	enriched map[string]interface{},
+	dataMap map[string]interface{},
 ) KeywordReplaceHandler {
 	return KeywordReplaceHandler{
-		reading:  reading,
-		enriched: enriched,
+		dataMap: dataMap,
 	}
 }
 
 type KeywordReplaceHandler struct {
-	result   string
-	reading  map[string]interface{}
-	enriched map[string]interface{}
+	result  string
+	dataMap map[string]interface{}
 }
 
 func (this *KeywordReplaceHandler) startToMap() {
 	this.result = ""
 }
 
-func (this *KeywordReplaceHandler) Replace(keyword string) string {
-	log.Debug("(KeywordReplaceHandler.Replace) keyword : ", keyword)
-	keyElements := strings.Split(keyword, ".")
-	subkeyElements := strings.Split(keyElements[2], "/")
-	log.Debug("(KeywordReplaceHandler.Replace) real keyword : ", keyElements[2])
-	var data interface{}
-	if "f1" == keyElements[0] {
-		data = this.reading[subkeyElements[0]]
-	} else {
-		/*
-			keyword : PythonService1..Result/result[]
-			keyElements[0] : PythonService1
-			subkeyElements[0] : Result
-			enriched : map[PythonService1..Result:{"id": "process:abc", "input1": [[2, 1], [3, 4]], "input2": [[6, 5], [8, 7]], "result": [2, 1, 3, 4, 6, 5, 8, 7]}]
-
-		*/
-		data = this.enriched[fmt.Sprintf("%s..%s", keyElements[0], subkeyElements[0])]
-	}
-	log.Debug("(KeywordReplaceHandler.Replace) real data : ", data)
-
-	dataType := reflect.ValueOf(data).Kind()
-	log.Debug("(KeywordReplaceHandler.Replace) dataType : ", dataType.String())
-	if reflect.String == dataType {
-		return strings.ReplaceAll(data.(string), "\"", "\\\"")
-	} else if reflect.Map == dataType {
-		if len(subkeyElements) > 1 {
-			log.Debug("(KeywordReplaceHandler.Replace) keyElements[2] : ", keyElements[2])
-			subkey := fmt.Sprintf("root%s", strings.Replace(keyElements[2][len(subkeyElements[0]):], "/", ".", -1))
-			log.Debug("(KeywordReplaceHandler.Replace) subkey : ", subkey)
-			data = objectbuilder.LocateObject(data.(map[string]interface{}), subkey).(interface{})
-			log.Debug("(KeywordReplaceHandler.Replace) data : ", data)
-		}
-		realDataType := reflect.ValueOf(data).Kind()
-		log.Debug("(KeywordReplaceHandler.Replace) realDataType : ", realDataType.String())
-		if reflect.Map == realDataType || reflect.Array == realDataType || reflect.Slice == realDataType {
-			jsonBuf, _ := json.Marshal(data)
-			log.Debug("(KeywordReplaceHandler.Replace) string(jsonBuf) : ", string(jsonBuf))
-			return fmt.Sprintf("%v", string(jsonBuf))
-		} else {
-			log.Debug("(KeywordReplaceHandler.Replace) data.(string) : ", data.(string))
-			return strings.ReplaceAll(data.(string), "\"", "\\\"")
-		}
-	} else if reflect.Array == dataType {
-		jsonBuf, _ := json.Marshal(data)
-		return fmt.Sprintf("%v", string(jsonBuf))
-	}
-	return fmt.Sprintf("%v", data)
-}
-
 /*
+	keyword : PythonService1..Result/result[]
+	keyElements[0] : PythonService1
+	subkeyElements[0] : Result
+	dataMap : map[PythonService1..Result:{"id": "process:abc", "input1": [[2, 1], [3, 4]], "input2": [[6, 5], [8, 7]], "result": [2, 1, 3, 4, 6, 5, 8, 7]}]
+
+*/
 func (this *KeywordReplaceHandler) Replace(keyword string) string {
 	log.Debug("(KeywordReplaceHandler.Replace) keyword : ", keyword)
-	keyElements := strings.Split(keyword, ".")
-	if "f1" == keyElements[0] {
-		subkeyElements := strings.Split(keyElements[2], "/")
-		log.Debug("(KeywordReplaceHandler.Replace) real keyword : ", keyElements[2])
-		data := this.reading[subkeyElements[0]]
-		dataType := reflect.ValueOf(data).Kind()
-		if reflect.String == dataType {
-			return strings.ReplaceAll(data.(string), "\"", "\\\"")
-		} else if reflect.Map == dataType {
-			if len(subkeyElements) > 1 {
-				log.Debug("(KeywordReplaceHandler.Replace) keyElements[2] : ", keyElements[2])
-				subkey := fmt.Sprintf("root%s", strings.Replace(keyElements[2][len(subkeyElements[0]):], "/", ".", -1))
-				log.Debug("(KeywordReplaceHandler.Replace) subkey : ", subkey)
-				data = objectbuilder.LocateObject(data.(map[string]interface{}), subkey).(interface{})
-				log.Debug("(KeywordReplaceHandler.Replace) data : ", data)
-			}
-			realDataType := reflect.ValueOf(data).Kind()
-			log.Debug("(KeywordReplaceHandler.Replace) realDataType : ", realDataType.String())
-			if reflect.Map == realDataType || reflect.Array == realDataType || reflect.Slice == realDataType {
-				jsonBuf, _ := json.Marshal(data)
-				log.Debug("(KeywordReplaceHandler.Replace) string(jsonBuf) : ", string(jsonBuf))
-				return fmt.Sprintf("%v", string(jsonBuf))
-			} else {
-				log.Debug("(KeywordReplaceHandler.Replace) data.(string) : ", data.(string))
-				return strings.ReplaceAll(data.(string), "\"", "\\\"")
-			}
-		} else if reflect.Array == dataType {
-			jsonBuf, _ := json.Marshal(data)
-			return fmt.Sprintf("%v", string(jsonBuf))
-		}
-		return fmt.Sprintf("%v", this.reading[keyElements[2]])
-	} else {
-		data := this.enriched[keyword]
-		if nil != data {
-			return fmt.Sprintf("%v", data)
-		}
-	}
-	return ""
+	log.Debug("(KeywordReplaceHandler.Replace) done .... ")
+	return util.ExtractDataAsString(this.dataMap, keyword)
 }
-
-func (this *KeywordReplaceHandler) Replace(keyword string) string {
-	keyElements := strings.Split(keyword, ".")
-	if "f1" == keyElements[0] {
-		data := this.reading[keyElements[2]]
-		dataType := reflect.ValueOf(data).Kind()
-		if reflect.String == dataType {
-			return strings.ReplaceAll(data.(string), "\"", "\\\"")
-		} else if reflect.Map == dataType || reflect.Array == dataType {
-			jsonBuf, _ := json.Marshal(data)
-			return fmt.Sprintf("%v", string(jsonBuf))
-		}
-		return fmt.Sprintf("%v", this.reading[keyElements[2]])
-	} else {
-		data := this.enriched[keyword]
-		if nil != data {
-			return fmt.Sprintf("%v", data)
-		}
-	}
-	return ""
-}
-
-func (this *KeywordReplaceHandler) Replace(keyword string) string {
-	keyElements := strings.Split(keyword, ".")
-	if "f1" == keyElements[0] {
-		return fmt.Sprintf("%v", this.reading[keyElements[2]])
-	} else {
-		data := this.enriched[keyword]
-		if nil != data {
-			return fmt.Sprintf("%v", data)
-		}
-	}
-	return ""
-}*/
 
 func (this *KeywordReplaceHandler) endOfMapping(document string) {
 	this.result = document
