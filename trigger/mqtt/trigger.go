@@ -317,10 +317,10 @@ func (t *Trigger) getHanlder(handler *clientHandler, parsed Topic) func(mqtt.Cli
 	return func(client mqtt.Client, msg mqtt.Message) {
 		topic := msg.Topic()
 		qos := msg.Qos()
-		payload := string(msg.Payload())
+		payload := msg.Payload()
 		params := parsed.Match(ParseTopic(topic))
 
-		t.logger.Debugf("Topic[%s] - Payload Recieved: %s", topic, payload)
+		t.logger.Debugf("Topic[%s] - Payload Recieved: %s", topic, string(payload))
 
 		result, err := runHandler(handler.handler, payload, topic, params, handler.settings.Deserializer)
 		if err != nil {
@@ -353,28 +353,31 @@ func (t *Trigger) getHanlder(handler *clientHandler, parsed Topic) func(mqtt.Cli
 }
 
 // RunHandler runs the handler and associated action
-func runHandler(handler trigger.Handler, payload, topic string, params map[string]string, deserializer string) (map[string]interface{}, error) {
+func runHandler(handler trigger.Handler, payload []byte, topic string, params map[string]string, deserializer string) (map[string]interface{}, error) {
 	var content interface{}
-
+	if payload[0] != byte('{') && payload[0] != byte('[') {
+		// If not JSON then assume it is CBOR
+		deserializer = "CBOR"
+	}
 	switch deserializer {
 	case "JSON":
-		err := json.Unmarshal([]byte(payload), &content)
+		err := json.Unmarshal(payload, &content)
 		if err != nil {
 			return nil, err
 		}
 	case "CBOR":
-		err := cbor.Unmarshal([]byte(payload), &content)
+		err := cbor.Unmarshal(payload, &content)
 		if err != nil {
 			return nil, err
 		}
 	case "Base64":
-		byteContent, err := base64.StdEncoding.DecodeString(payload)
+		byteContent, err := base64.StdEncoding.DecodeString(string(payload))
 		if err != nil {
 			return nil, err
 		}
 		content = string(byteContent)
 	case "Base64JSON":
-		decodedByteContent, err := base64.StdEncoding.DecodeString(payload)
+		decodedByteContent, err := base64.StdEncoding.DecodeString(string(payload))
 		if err != nil {
 			return nil, err
 		}
@@ -383,7 +386,7 @@ func runHandler(handler trigger.Handler, payload, topic string, params map[strin
 			return nil, err
 		}
 	default:
-		content = payload
+		content = string(payload)
 	}
 
 	out := &Output{
