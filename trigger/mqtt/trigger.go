@@ -11,6 +11,8 @@ import (
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/fxamacker/cbor/v2"
+
 	"github.com/project-flogo/core/data/metadata"
 	"github.com/project-flogo/core/support/log"
 	"github.com/project-flogo/core/support/ssl"
@@ -357,6 +359,11 @@ func runHandler(handler trigger.Handler, payload, topic string, params map[strin
 	switch deserializer {
 	case "JSON":
 		err := json.Unmarshal([]byte(payload), &content)
+		if err != nil {
+			return nil, err
+		}
+	case "CBOR":
+		err := cbor.Unmarshal([]byte(payload), &content)
 		if err != nil {
 			return nil, err
 		}
