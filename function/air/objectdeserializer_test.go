@@ -15,3 +15,11 @@ func TestFNObjectDeserializer_Eval(t *testing.T) {
 	assert.Nil(t, err)
 	fmt.Println("#### ", v)
 }
+
+func TestFNObjectDeserializer_Eval2(t *testing.T) {
+	f := &fnObjectDeserializer{}
+	objectstr := "{\"sample_type\":\"JSON\"}"
+	v, err := function.Eval(f, []byte(objectstr), nil)
+	assert.Nil(t, err)
+	fmt.Println("#### ", v)
+}
