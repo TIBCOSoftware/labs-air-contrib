@@ -519,6 +519,24 @@
             }
         },
         {
+            "name": "objectdeserializer",
+            "description": "Returns an object",
+            "example": "f1.json2object('{}') => empty object",
+            "args": [
+                {
+                    "name": "objectbytes",
+                    "type": "any"
+                },
+                {
+                    "name": "deserializer",
+                    "type": "string"
+                }
+            ],
+            "return": {
+                "type": "any"
+            }
+        },
+        {
             "name": "json2object",
             "description": "Returns an object",
             "example": "f1.json2object('{}') => empty object",
