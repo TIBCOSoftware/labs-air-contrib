@@ -367,10 +367,13 @@ func (t *Trigger) runHandler(handler trigger.Handler, payload []byte, topic stri
 			data := content.(map[string]interface{})["Payload"].([]byte)
 			if data[0] != byte('{') && data[0] != byte('[') {
 				var obj interface{}
+				t.logger.Info(data)
+				t.logger.Info(string(data))
 				err := cbor.Unmarshal(data, &obj)
 				if err != nil {
 					return nil, err
 				}
+				t.logger.Info(obj)
 			}
 		}
 		t.logger.Info("Test stop ==================================================")
