@@ -322,7 +322,7 @@ func (t *Trigger) getHanlder(handler *clientHandler, parsed Topic) func(mqtt.Cli
 
 		t.logger.Debugf("Topic[%s] - Payload Recieved: %s", topic, string(payload))
 
-		result, err := runHandler(handler.handler, payload, topic, params, handler.settings.Deserializer)
+		result, err := t.runHandler(handler.handler, payload, topic, params, handler.settings.Deserializer)
 		if err != nil {
 			t.logger.Error("Error handling message: %v", err)
 			return
@@ -353,23 +353,28 @@ func (t *Trigger) getHanlder(handler *clientHandler, parsed Topic) func(mqtt.Cli
 }
 
 // RunHandler runs the handler and associated action
-func runHandler(handler trigger.Handler, payload []byte, topic string, params map[string]string, deserializer string) (map[string]interface{}, error) {
+func (t *Trigger) runHandler(handler trigger.Handler, payload []byte, topic string, params map[string]string, deserializer string) (map[string]interface{}, error) {
 	var content interface{}
-	if payload[0] != byte('{') && payload[0] != byte('[') {
-		// If not JSON then assume it is CBOR
-		deserializer = "CBOR"
-	}
 	switch deserializer {
 	case "JSON":
 		err := json.Unmarshal(payload, &content)
 		if err != nil {
 			return nil, err
 		}
-	case "CBOR":
-		err := cbor.Unmarshal(payload, &content)
-		if err != nil {
-			return nil, err
+
+		t.logger.Info("Test start ==================================================")
+		if nil != content.(map[string]interface{})["Payload"] {
+			data := content.(map[string]interface{})["Payload"].([]byte)
+			if data[0] != byte('{') && data[0] != byte('[') {
+				var obj interface{}
+				err := cbor.Unmarshal(data, &obj)
+				if err != nil {
+					return nil, err
+				}
+			}
 		}
+		t.logger.Info("Test stop ==================================================")
+
 	case "Base64":
 		byteContent, err := base64.StdEncoding.DecodeString(string(payload))
 		if err != nil {
