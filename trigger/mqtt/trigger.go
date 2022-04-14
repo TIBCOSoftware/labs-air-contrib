@@ -11,8 +11,9 @@ import (
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
-	"github.com/fxamacker/cbor/v2"
+	"github.com/edgexfoundry/go-mod-messaging/v2/pkg/types"
 
+	//	"github.com/fxamacker/cbor/v2"
 	"github.com/project-flogo/core/data/metadata"
 	"github.com/project-flogo/core/support/log"
 	"github.com/project-flogo/core/support/ssl"
@@ -361,30 +362,20 @@ func (t *Trigger) runHandler(handler trigger.Handler, payload []byte, topic stri
 		if err != nil {
 			return nil, err
 		}
-
-		t.logger.Info("Test start ==================================================")
-		if nil != content.(map[string]interface{})["Payload"] {
-			data := content.(map[string]interface{})["Payload"].([]byte)
-			if data[0] != byte('{') && data[0] != byte('[') {
-				var obj interface{}
-				t.logger.Info(data)
-				t.logger.Info(string(data))
-				err := cbor.Unmarshal(data, &obj)
-				if err != nil {
-					return nil, err
-				}
-				t.logger.Info(obj)
-			}
+	case "EDGEX_JSON":
+		edgexEnvelope := types.MessageEnvelope{}
+		err := json.Unmarshal(payload, &edgexEnvelope)
+		if err != nil {
+			return nil, err
 		}
-		t.logger.Info("Test stop ==================================================")
-
+		content = edgexEnvelope
 	case "Base64":
 		byteContent, err := base64.StdEncoding.DecodeString(string(payload))
 		if err != nil {
 			return nil, err
 		}
 		content = string(byteContent)
-	case "Base64JSON":
+	case "Base64_JSON":
 		decodedByteContent, err := base64.StdEncoding.DecodeString(string(payload))
 		if err != nil {
 			return nil, err
@@ -394,7 +385,7 @@ func (t *Trigger) runHandler(handler trigger.Handler, payload []byte, topic stri
 			return nil, err
 		}
 	default:
-		content = string(payload)
+		content = payload
 	}
 
 	out := &Output{
