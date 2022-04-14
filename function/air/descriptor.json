@@ -537,6 +537,24 @@
             }
         },
         {
+            "name": "objectserializer",
+            "description": "Returns byte array",
+            "example": "f1.json2object(map[string]interface{}{}) => '{}'",
+            "args": [
+                {
+                    "name": "obj",
+                    "type": "object"
+                },
+                {
+                    "name": "deserializer",
+                    "type": "string"
+                }
+            ],
+            "return": {
+                "type": "any"
+            }
+        },
+        {
             "name": "json2object",
             "description": "Returns an object",
             "example": "f1.json2object('{}') => empty object",
