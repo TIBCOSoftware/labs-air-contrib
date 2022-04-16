@@ -368,7 +368,12 @@ func (t *Trigger) runHandler(handler trigger.Handler, payload []byte, topic stri
 		if err != nil {
 			return nil, err
 		}
-		content = edgexEnvelope
+		content = map[string]interface{}{
+			"ContentType":   edgexEnvelope.ContentType,
+			"CorrelationID": edgexEnvelope.CorrelationID,
+			"Payload":       edgexEnvelope.Payload,
+			"ReceivedTopic": edgexEnvelope.ReceivedTopic,
+		}
 	case "Base64":
 		byteContent, err := base64.StdEncoding.DecodeString(string(payload))
 		if err != nil {
