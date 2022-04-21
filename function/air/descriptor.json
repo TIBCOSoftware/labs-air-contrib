@@ -399,6 +399,24 @@
             }
         },
         {
+            "name": "throw",
+            "description": "Throw exception",
+            "example": "f1.throw(true==condition, \"Exception happens!\") => true",
+            "args": [
+                {
+                    "name": "condition",
+                    "type": "boolean"
+                },
+                {
+                    "name": "error message",
+                    "type": "string"
+                }
+            ],
+            "return": {
+                "type": "boolean"
+            }
+        },
+        {
             "name": "isempty",
             "description": "Returns true : the input object has no entry ",
             "example": "f1.isempty({}) => true",
