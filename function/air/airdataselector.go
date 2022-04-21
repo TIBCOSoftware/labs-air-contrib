@@ -3,6 +3,7 @@ package air
 import (
 	"bytes"
 	"fmt"
+	"strings"
 
 	"github.com/TIBCOSoftware/labs-air-contrib/common/util"
 	"github.com/project-flogo/core/data"
@@ -26,6 +27,11 @@ func (fnAirDataSelector) Sig() (paramTypes []data.Type, isVariadic bool) {
 
 func (fnAirDataSelector) Eval(params ...interface{}) (interface{}, error) {
 	// f1.airdataselector($flow.gateway, $flow.reading, $flow.enriched, $property["Python.DataIn"])
+	template := params[3].(string)
+	if !strings.Contains(template, "@") {
+		return template, nil
+	}
+
 	dataMap := make(map[string]interface{})
 	dataMap["f1..gateway"] = params[0]                           // gateway
 	for key, value := range params[1].(map[string]interface{}) { // reading
@@ -38,12 +44,13 @@ func (fnAirDataSelector) Eval(params ...interface{}) (interface{}, error) {
 		}
 	}
 
-	template := params[3].(string)
-
 	log.Debug("(fnAirDataSelector.Eval) input dataMap : ", dataMap)
 	log.Debug("(fnAirDataSelector.Eval) input template : ", template)
 
-	data := util.ExtractData(dataMap, template[1:len(template)-1])
+	var data interface{}
+	if '@' == template[0] && '@' == template[len(template)-1] {
+		data = util.ExtractData(dataMap, template[1:len(template)-1])
+	}
 	if nil == data {
 		data = NewKeywordMapper("@", "@").Replace(
 			template,
@@ -53,6 +60,9 @@ func (fnAirDataSelector) Eval(params ...interface{}) (interface{}, error) {
 
 	log.Debug("(fnAirDataSelector.Eval) out data : ", data)
 
+	if nil == data {
+		return "", nil
+	}
 	return data, nil
 }
 
@@ -73,13 +83,6 @@ func (this *KeywordReplaceHandler) startToMap() {
 	this.result = ""
 }
 
-/*
-	keyword : PythonService1..Result/result[]
-	keyElements[0] : PythonService1
-	subkeyElements[0] : Result
-	dataMap : map[PythonService1..Result:{"id": "process:abc", "input1": [[2, 1], [3, 4]], "input2": [[6, 5], [8, 7]], "result": [2, 1, 3, 4, 6, 5, 8, 7]}]
-
-*/
 func (this *KeywordReplaceHandler) Replace(keyword string) string {
 	log.Debug("(KeywordReplaceHandler.Replace) keyword : ", keyword)
 	log.Debug("(KeywordReplaceHandler.Replace) done .... ")
