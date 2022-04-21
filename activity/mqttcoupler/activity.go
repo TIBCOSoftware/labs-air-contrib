@@ -155,10 +155,6 @@ func New(ctx activity.InitContext) (activity.Activity, error) {
 		options.SetTLSConfig(tlsConfig)
 	}
 
-	//opts.SetDefaultPublishHandler(f)
-	topicMessages := NewTopicMessages()
-	options.SetDefaultPublishHandler(topicMessages.receiveMessage)
-
 	mqttClient, err := getClient(ctx.Logger(), settings.Id, options)
 	if nil != err {
 		return nil, err
@@ -168,7 +164,7 @@ func New(ctx activity.InitContext) (activity.Activity, error) {
 		client:        mqttClient,
 		settings:      settings,
 		topic:         ParseTopic(settings.Topic),
-		topicMessages: topicMessages,
+		topicMessages: NewTopicMessages(),
 	}
 	return act, nil
 }
@@ -202,12 +198,10 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 		topic = a.topic.String(params)
 	}
 
-	//subscribe to the topic /go-mqtt/sample and request messages to be delivered
-	//at a maximum qos of zero, wait for the receipt to confirm the subscription
 	uuid, _ := uuid.NewUUID()
 	respTopic := fmt.Sprintf("%s/%s", topic, uuid)
 	ctx.Logger().Infof("MQTT client sunscribe topic, client id : %s, topic : %s", a.settings.Id, respTopic)
-	if token := a.client.Subscribe(respTopic, 0, nil); token.Wait() && token.Error() != nil {
+	if token := a.client.Subscribe(respTopic, 0, a.topicMessages.receiveMessage); token.Wait() && token.Error() != nil {
 		fmt.Println(token.Error())
 		return true, token.Error()
 	}
@@ -221,11 +215,13 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 		ctx.Logger().Errorf("Error in publishing: %v", err)
 		return true, token.Error()
 	}
-
+	a.topicMessages.startTimer(responseTimeout)
 	ctx.Logger().Debugf("Request Message: %v", input.Message)
 
 	msg := future.Await()
 	ctx.Logger().Infof("Response Message: %v", msg)
+
+	_ = a.client.Unsubscribe(respTopic)
 
 	return true, nil
 }
@@ -233,6 +229,7 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 func (a *Activity) WaitMessage(topic string) mqtt.Message {
 	fmt.Println("awaiting message")
 	<-gotMessage
+	fmt.Println("pass ================= ")
 	msg := a.topicMessages.removeMessage(topic)
 	return msg
 }
@@ -249,8 +246,17 @@ type TopicMessages struct {
 	messages map[string]interface{}
 }
 
+func (t *TopicMessages) startTimer(timeout int) {
+	go func() {
+		time.Sleep(time.Duration(timeout) * time.Second)
+		fmt.Println("================= wake up ===================")
+		gotMessage <- true
+	}()
+}
+
 func (t *TopicMessages) receiveMessage(client mqtt.Client, msg mqtt.Message) {
 	t.messages[msg.Topic()] = msg
+	fmt.Println("xxxxxxxxxxxxxxxxxxx receiveMessage xxxxxxxxxxxxxxxxxxxxx Topic = ", msg.Topic())
 	gotMessage <- true
 }
 

@@ -2,12 +2,8 @@ package mqttcoupler
 
 import (
 	"net"
-	//	"os"
-	//	"os/exec"
 	"testing"
-	"time"
 
-	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/project-flogo/core/activity"
@@ -67,27 +63,11 @@ func TestRegister(t *testing.T) {
 }
 
 func TestEval(t *testing.T) {
-	options := mqtt.NewClientOptions()
-	options.AddBroker("tcp://localhost:1883")
-	options.SetClientID("TestAbc123")
-	client := mqtt.NewClient(options)
-	token := client.Connect()
-	token.Wait()
-	assert.Nil(t, token.Error())
-	fini := make(chan bool, 1)
-	token = client.Subscribe("/x/+/y/#", 0, func(client mqtt.Client, message mqtt.Message) {
-		topic, payload := message.Topic(), string(message.Payload())
-		assert.Equal(t, `{"message": "hello world"}`, payload)
-		assert.Equal(t, "/x/test/y/j/k", topic)
-		fini <- true
-	})
-	token.Wait()
-	assert.Nil(t, token.Error())
-
 	settings := Settings{
-		Broker: "tcp://localhost:1883",
-		Id:     "TestX",
-		Topic:  "/x/:a/y/:b",
+		Broker:          "tcp://localhost:1883",
+		Id:              "TestX",
+		Topic:           "/x/:a/y/:b",
+		ResponseTimeout: 5,
 	}
 	init := test.NewActivityInitContext(settings, nil)
 	act, err := New(init)
@@ -99,9 +79,4 @@ func TestEval(t *testing.T) {
 	assert.True(t, done)
 	assert.Nil(t, err)
 
-	select {
-	case <-fini:
-	case <-time.Tick(time.Second):
-		t.Fatal("didn't get message in time")
-	}
 }
