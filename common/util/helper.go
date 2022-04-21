@@ -19,12 +19,15 @@ var log = logger.GetLogger("tibco-air_helper")
 
 func ExtractData(dataMap map[string]interface{}, keyword string) interface{} {
 	keyElements := strings.Split(keyword, ".")
+	if 3 < len(keyElements) {
+		return nil
+	}
 	subkeyElements := strings.Split(keyElements[2], "/")
 	log.Debug("(ExtractData) real keyword : ", keyElements[2])
 	var data interface{}
 	data = dataMap[fmt.Sprintf("%s..%s", keyElements[0], subkeyElements[0])]
 	log.Debug("(ExtractData) First level data : ", data)
-	if len(subkeyElements) > 1 {
+	if 1 < len(subkeyElements) {
 		if _, isMap := data.(map[string]interface{}); !isMap {
 			if _, isArray := data.([]interface{}); !isArray {
 				return nil
