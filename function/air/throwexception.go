@@ -8,21 +8,21 @@ import (
 )
 
 func init() {
-	function.Register(&fnThrow{})
+	function.Register(&fnThrowException{})
 }
 
-type fnThrow struct {
+type fnThrowException struct {
 }
 
-func (fnThrow) Name() string {
-	return "throw"
+func (fnThrowException) Name() string {
+	return "throwexception"
 }
 
-func (fnThrow) Sig() (paramTypes []data.Type, isVariadic bool) {
+func (fnThrowException) Sig() (paramTypes []data.Type, isVariadic bool) {
 	return []data.Type{data.TypeBool, data.TypeString}, false
 }
 
-func (fnThrow) Eval(params ...interface{}) (interface{}, error) {
+func (fnThrowException) Eval(params ...interface{}) (interface{}, error) {
 	if nil == params[0] {
 		return false, nil
 	}

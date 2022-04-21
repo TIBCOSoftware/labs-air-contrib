@@ -399,9 +399,9 @@
             }
         },
         {
-            "name": "throw",
+            "name": "throwexception",
             "description": "Throw exception",
-            "example": "f1.throw(true==condition, \"Exception happens!\") => true",
+            "example": "air.throw(true==condition, \"Exception happens!\") => true",
             "args": [
                 {
                     "name": "condition",
