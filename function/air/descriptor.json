@@ -417,6 +417,24 @@
             }
         },
         {
+            "name": "base64decode",
+            "description": "Base64 decode by condition.",
+            "example": "air.base64decode(true==condition, \"bXF0dF9hZG1pbg==\") => admin",
+            "args": [
+                {
+                    "name": "condition",
+                    "type": "boolean"
+                },
+                {
+                    "name": "ecodedstr",
+                    "type": "string"
+                }
+            ],
+            "return": {
+                "type": "any"
+            }
+        },
+        {
             "name": "isempty",
             "description": "Returns true : the input object has no entry ",
             "example": "f1.isempty({}) => true",
