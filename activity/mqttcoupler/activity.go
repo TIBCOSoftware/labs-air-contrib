@@ -207,7 +207,7 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 	}
 
 	future := async.Exec(func() interface{} {
-		return a.WaitMessage(respTopic)
+		return a.WaitMessage(ctx.Logger(), respTopic)
 	})
 
 	ctx.Logger().Infof("MQTT client publishing, client id : %s, msg : %s", a.settings.Id, input.Message)
@@ -215,7 +215,7 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 		ctx.Logger().Errorf("Error in publishing: %v", err)
 		return true, token.Error()
 	}
-	a.topicMessages.startTimer(responseTimeout)
+	a.topicMessages.startTimer(ctx.Logger(), responseTimeout)
 	ctx.Logger().Debugf("Request Message: %v", input.Message)
 
 	msg := future.Await()
@@ -226,11 +226,11 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 	return true, nil
 }
 
-func (a *Activity) WaitMessage(topic string) mqtt.Message {
-	fmt.Println("awaiting message")
+func (a *Activity) WaitMessage(logger log.Logger, topic string) mqtt.Message {
+	logger.Debugf("Awaiting message on : %s", topic)
 	<-gotMessage
-	fmt.Println("pass ================= ")
 	msg := a.topicMessages.removeMessage(topic)
+	logger.Debugf("Got signal! here is the message for the topic : %v", msg)
 	return msg
 }
 
@@ -246,10 +246,10 @@ type TopicMessages struct {
 	messages map[string]interface{}
 }
 
-func (t *TopicMessages) startTimer(timeout int) {
+func (t *TopicMessages) startTimer(logger log.Logger, timeout int) {
 	go func() {
 		time.Sleep(time.Duration(timeout) * time.Second)
-		fmt.Println("================= wake up ===================")
+		logger.Debugf("Time up after sleep : %s seconds", timeout)
 		gotMessage <- true
 	}()
 }

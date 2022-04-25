@@ -12,7 +12,7 @@ type Settings struct {
 	Store           string `md:"store"`           // The store for message persistence
 	KeepAlive       int64  `md:"keepAlive"`       // Keep Alive
 	CleanSession    bool   `md:"cleanSession"`    // Clean session flag
-	ResponseTimeout int    `md:"responseTimeout`  // response timeout (sec)
+	ResponseTimeout int    `md:"responseTimeout"` // response timeout (sec)
 
 	Retain    bool                   `md:"retain"`         // Retain Messages
 	Topic     string                 `md:"topic,required"` // The topic to publish to

@@ -4,7 +4,8 @@
   "version": "0.1.0",
   "title": "MQTT Activity",
   "description": "Send/Receive MQTT message",
-  "homepage": "https://github.com/project-flogo/edge-contrib/tree/master/activity/mqttcoupler",
+  "homepage": "https://github.com/TIBCOSoftware/labs-air-contrib/activity/mqttcoupler",
+  "ref": "github.com/TIBCOSoftware/labs-air-contrib/activity/mqttcoupler",
   "settings": [
     {
       "name": "broker",
