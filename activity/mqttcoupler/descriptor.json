@@ -40,6 +40,11 @@
       "description": "The quality of service"
     },
     {
+      "name": "responseTimeout",
+      "type": "int",
+      "description": "Response timeout"
+    },
+    {
       "name": "cleanSession",
       "type": "boolean",
       "description": "Clean session flag"
