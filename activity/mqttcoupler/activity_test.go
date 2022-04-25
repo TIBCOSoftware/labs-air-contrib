@@ -20,21 +20,6 @@ func Pour(port string) {
 	}
 }
 
-/*
-func TestMain(m *testing.M) {
-	command := exec.Command("docker", "start", "mqtt")
-	err := command.Run()
-	if err != nil {
-		command := exec.Command("docker", "run", "-p", "1883:1883", "-p", "9001:9001", "--name", "mqtt", "-d", "eclipse-mosquitto")
-		err := command.Run()
-		if err != nil {
-			panic(err)
-		}
-	}
-	Pour("1883")
-	os.Exit(m.Run())
-}*/
-
 func TestParseTopic(t *testing.T) {
 	test := func(input, output string, params map[string]string) {
 		parsed := ParseTopic(input)
