@@ -2,6 +2,7 @@ package mqttcoupler
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
@@ -215,7 +216,19 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 	})
 
 	ctx.Logger().Infof("MQTT client publishing, client id : %s, msg : %s", a.settings.Id, input.Message)
-	if token := a.client.Publish(topic, byte(a.settings.Qos), a.settings.Retain, input.Message); token.Wait() && token.Error() != nil {
+
+	messageEnvelope := map[string]interface{}{
+		"Sender":        "Project Air",
+		"ResponseTopic": respTopic,
+		"Payload":       input.Message,
+	}
+
+	messageEnvelopebytes, err := json.Marshal(messageEnvelope)
+	if nil != err {
+		return false, err
+	}
+
+	if token := a.client.Publish(topic, byte(a.settings.Qos), a.settings.Retain, string(messageEnvelopebytes)); token.Wait() && token.Error() != nil {
 		ctx.Logger().Errorf("Error in publishing: %v", err)
 		return true, token.Error()
 	}
