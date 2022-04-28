@@ -20,10 +20,6 @@ import (
 	"github.com/project-flogo/core/support/ssl"
 )
 
-const (
-	oData = "data"
-)
-
 var clients = make(map[string]mqtt.Client)
 var clientMapMutex = &sync.Mutex{}
 var gotMessage = make(chan bool, 1)
@@ -238,7 +234,9 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 	msg := future.Await()
 	ctx.Logger().Infof("Response Message: %v", msg)
 
-	err = ctx.SetOutput(oData, msg)
+	output := &Output{}
+	output.Data = msg
+	err = ctx.SetOutputObject(output)
 	if err != nil {
 		return false, err
 	}
