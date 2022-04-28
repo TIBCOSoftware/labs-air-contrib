@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	oData = "Data"
+	oData = "data"
 )
 
 var clients = make(map[string]mqtt.Client)
