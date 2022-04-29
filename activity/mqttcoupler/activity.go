@@ -35,7 +35,7 @@ func getClient(logger log.Logger, connectionID string, opts *mqtt.ClientOptions)
 	}
 
 	client = mqtt.NewClient(opts)
-	logger.Info("[mqtt.activity.getClient] Mqtt Publish is establishing a connection, client id : ", connectionID)
+	logger.Debug("[mqtt.activity.getClient] Mqtt Publish is establishing a connection, client id : ", connectionID)
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
 		return nil, errors.New(fmt.Sprintf("Connection to mqtt broker failed %v", token.Error()))
 	}
@@ -228,7 +228,7 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 		ctx.Logger().Errorf("Error in publishing: %v", err)
 		return true, token.Error()
 	}
-	a.topicMessages.startTimer(ctx.Logger(), responseTimeout)
+	a.topicMessages.startTimer(ctx.Logger(), respTopic, responseTimeout)
 	ctx.Logger().Debugf("Request Message: %v", input.Message)
 
 	msg := future.Await()
@@ -245,14 +245,14 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 		return false, err
 	}
 
-	_ = a.client.Unsubscribe(respTopic)
-
 	return true, nil
 }
 
 func (a *Activity) WaitMessage(logger log.Logger, topic string) mqtt.Message {
 	logger.Debugf("Awaiting message on : %s", topic)
 	<-gotMessage
+	a.client.Unsubscribe(topic)
+	logger.Debugf("Unsubscribe topic : %s", topic)
 	msg := a.topicMessages.removeMessage(topic)
 	logger.Debugf("Got signal! here is the message for the topic : %v", msg)
 	return msg
@@ -260,27 +260,34 @@ func (a *Activity) WaitMessage(logger log.Logger, topic string) mqtt.Message {
 
 func NewTopicMessages() *TopicMessages {
 	topicMessages := &TopicMessages{
-		messages: make(map[string]interface{}),
+		messages:      make(map[string]interface{}),
+		waitingTopics: make(map[string]bool),
 	}
 	return topicMessages
 }
 
 type TopicMessages struct {
-	activity *Activity
-	messages map[string]interface{}
+	activity      *Activity
+	messages      map[string]interface{}
+	waitingTopics map[string]bool
 }
 
-func (t *TopicMessages) startTimer(logger log.Logger, timeout int) {
+func (t *TopicMessages) startTimer(logger log.Logger, topic string, timeout int) {
 	go func() {
+		t.waitingTopics[topic] = true
 		time.Sleep(time.Duration(timeout) * time.Second)
-		logger.Debugf("Time up after sleep : %s seconds", timeout)
-		gotMessage <- true
+		logger.Debugf("Wait for topic %s for %s seconds ", topic, timeout)
+		if true == t.waitingTopics[topic] {
+			logger.Debugf("Send timeout signal totopic  %s ", topic)
+			gotMessage <- true
+		}
 	}()
 }
 
 func (t *TopicMessages) receiveMessage(client mqtt.Client, msg mqtt.Message) {
 	t.messages[msg.Topic()] = msg
-	fmt.Println("xxxxxxxxxxxxxxxxxxx receiveMessage xxxxxxxxxxxxxxxxxxxxx Topic = ", msg.Topic())
+	delete(t.waitingTopics, msg.Topic())
+	fmt.Println("xxxxxx receiveMessage xxxxxxx Topic = ", msg.Topic())
 	gotMessage <- true
 }
 
