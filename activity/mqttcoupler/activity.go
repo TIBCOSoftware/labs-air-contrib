@@ -234,8 +234,12 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 	msg := future.Await()
 	ctx.Logger().Infof("Response Message: %v", msg)
 
+	if nil == msg {
+		return false, errors.New("Timeout !!!")
+	}
+
 	output := &Output{}
-	output.Data = msg
+	output.Data = string(msg.(mqtt.Message).Payload())
 	err = ctx.SetOutputObject(output)
 	if err != nil {
 		return false, err
