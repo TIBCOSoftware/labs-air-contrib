@@ -276,11 +276,12 @@ func (t *TopicMessages) startTimer(logger log.Logger, topic string, timeout int)
 	go func() {
 		t.waitingTopics[topic] = true
 		time.Sleep(time.Duration(timeout) * time.Second)
-		logger.Debugf("Wait for topic %s for %s seconds ", topic, timeout)
+		logger.Debugf("Wake up from waiting on topic %s for %s seconds!", topic, timeout)
 		if true == t.waitingTopics[topic] {
-			logger.Debugf("Send timeout signal totopic  %s ", topic)
+			logger.Debugf("Send timeout signal for topic  %s ", topic)
 			gotMessage <- true
 		}
+		logger.Debugf("Ignore timeout signal on topic  %s ", topic)
 	}()
 }
 

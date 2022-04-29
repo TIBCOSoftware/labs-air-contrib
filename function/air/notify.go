@@ -44,10 +44,10 @@ func (fnNotify) Eval(params ...interface{}) (interface{}, error) {
 
 	target := iTarget.(string)
 
-	log.Info("(fnNotify.Eval) gateway : ", gateway)
-	log.Info("(fnNotify.Eval) reading : ", reading)
-	log.Info("(fnNotify.Eval) enriched : ", enriched)
-	log.Info("(fnNotify.Eval) target : ", target)
+	log.Debug("(fnNotify.Eval) gateway : ", gateway)
+	log.Debug("(fnNotify.Eval) reading : ", reading)
+	log.Debug("(fnNotify.Eval) enriched : ", enriched)
+	log.Debug("(fnNotify.Eval) target : ", target)
 
 	matched := false
 	matchType := ""
@@ -56,6 +56,7 @@ func (fnNotify) Eval(params ...interface{}) (interface{}, error) {
 		match := value.(map[string]interface{})
 		matchType = match["type"].(string)
 		level = match["value"].(string)
+		log.Debug("(fnNotify.Eval) matchType : ", matchType, ", level : ", level, ", target : ", target, ", \"contains\" == matchType : ", "contains" == matchType, ", strings.Contains(target, level) : ", strings.Contains(target, level))
 		if "contains" == matchType && strings.Contains(target, level) {
 			matched = true
 			break
@@ -92,7 +93,7 @@ func (fnNotify) Eval(params ...interface{}) (interface{}, error) {
 			},
 		}
 
-		log.Info("(fnNotify.Eval) notifier : ", notifier, ", notification : ", notification)
+		log.Debug("(fnNotify.Eval) notifier : ", notifier, ", notification : ", notification)
 		//notificationBroker := notificationbroker.GetFactory().GetNotificationBroker(notifier)
 		//if nil != notificationBroker {
 		//	notificationBroker.SendEvent(notification)
