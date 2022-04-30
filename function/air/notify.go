@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	//"github.com/TIBCOSoftware/labs-flogo-lib/notification/notificationbroker"
+	"github.com/TIBCOSoftware/labs-air-contrib/common/notification/notificationbroker"
 	"github.com/project-flogo/core/data"
 	"github.com/project-flogo/core/data/expression/function"
 )
@@ -94,10 +94,10 @@ func (fnNotify) Eval(params ...interface{}) (interface{}, error) {
 		}
 
 		log.Debug("(fnNotify.Eval) notifier : ", notifier, ", notification : ", notification)
-		//notificationBroker := notificationbroker.GetFactory().GetNotificationBroker(notifier)
-		//if nil != notificationBroker {
-		//	notificationBroker.SendEvent(notification)
-		//}
+		notificationBroker := notificationbroker.GetFactory().GetNotificationBroker(notifier)
+		if nil != notificationBroker {
+			go notificationBroker.SendEvent(notification)
+		}
 		return notification, nil
 	}
 	return nil, nil
