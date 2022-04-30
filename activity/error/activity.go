@@ -71,7 +71,7 @@ func (a *Error) Eval(context activity.Context) (done bool, err error) {
 	if !ok {
 		return false, errors.New("Invalid reading ... ")
 	}
-	enriched, ok := context.GetInput(iEnriched).(map[string]interface{})
+	enriched, ok := context.GetInput(iEnriched).([]interface{})
 	if !ok {
 		return false, errors.New("Invalid enriched ... ")
 	}

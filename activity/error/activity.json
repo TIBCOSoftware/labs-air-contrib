@@ -34,7 +34,7 @@
 		},		
 		{
             "name": "Enriched",
-            "type": "object"
+            "type": "array"
 		}
     ],
 	"outputs": [
