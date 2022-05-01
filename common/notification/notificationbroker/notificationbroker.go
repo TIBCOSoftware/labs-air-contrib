@@ -6,6 +6,7 @@
 package notificationbroker
 
 import (
+	"strings"
 	"sync"
 
 	"github.com/TIBCOSoftware/flogo-lib/logger"
@@ -46,19 +47,41 @@ func (this *NotificationBrokerFactory) CreateNotificationBroker(
 	brokerID string,
 	listener NotificationListener) (*NotificationBroker, error) {
 
+	log.Debug("(NotificationBrokerFactory.CreateNotificationBroker) Factory : ", instance)
 	this.mux.Lock()
 	defer this.mux.Unlock()
 	broker := this.exeEventBrokers[brokerID]
-
-	broker = &NotificationBroker{
-		ID:       brokerID,
-		listener: listener,
+	if nil == broker {
+		broker = &NotificationBroker{
+			ID:       brokerID,
+			listener: listener,
+		}
 	}
 	this.exeEventBrokers[brokerID] = broker
-	log.Debug("(NotificationBrokerFactory.CreateNotificationBroker) Factory : ", instance)
 	log.Debug("(NotificationBrokerFactory.CreateNotificationBroker) EventBrokers : ", this.exeEventBrokers)
 
 	return broker, nil
+}
+
+func (this *NotificationBrokerFactory) CreateNotificationBrokers(
+	brokerIDsStr string,
+	listener NotificationListener) ([]*NotificationBroker, error) {
+
+	log.Debug("(NotificationBrokerFactory.CreateNotificationBrokers) Factory : ", instance)
+
+	var brokers []*NotificationBroker
+	brokerIds := strings.Split(brokerIDsStr, ",")
+	for _, brokerID := range brokerIds {
+		broker, err := this.CreateNotificationBroker(brokerID, listener)
+		if nil != err {
+			return nil, err
+		}
+		brokers = append(brokers, broker)
+	}
+
+	log.Debug("(NotificationBrokerFactory.CreateNotificationBrokers) EventBrokers : ", this.exeEventBrokers)
+
+	return brokers, nil
 }
 
 type NotificationBroker struct {
