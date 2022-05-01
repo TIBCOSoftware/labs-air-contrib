@@ -83,7 +83,7 @@ func (fnNotify) Eval(params ...interface{}) (interface{}, error) {
 				map[string]interface{}{
 					"producer": "rule",
 					"name":     "description",
-					"value":    target[9 : len(target)-3],
+					"value":    target,
 				},
 				map[string]interface{}{
 					"producer": "rule",
