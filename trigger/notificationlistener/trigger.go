@@ -89,30 +89,39 @@ func (this *NotificationListener) Start() error {
 	this.brokers = make(map[string]*notificationbroker.NotificationBroker)
 	logger.Info("(NotificationListener.Start) this.brokers = ", this.brokers)
 	this.listeners = make(map[string](map[string]trigger.Handler))
+	/*
+		handler in this.handlers has been predefined by descriptor,
+		currently we always install just one for all kinds of notifications.
+	*/
 	for index, handler := range this.handlers {
 		logger.Info("(NotificationListener.Start) handler = ", handler)
-		broker, exist := handler.Settings()[cNotifierID]
+		brokers, exist := handler.Settings()[cNotifierID]
 		if !exist {
 			return fmt.Errorf("Illegal broker : key = %s\n", cNotifierID)
 		}
 
-		brokerID := broker.(string)
-		if nil == this.brokers[brokerID] {
-			notifier, err := notificationbroker.GetFactory().CreateNotificationBroker(brokerID, this)
-			if nil != err {
-				return err
+		brokerIDs := brokers.(string)
+		notifiers, err := notificationbroker.GetFactory().CreateNotificationBrokers(brokerIDs, this)
+		if nil != err {
+			return err
+		}
+		for _, notifier := range notifiers {
+			brokerID := notifier.ID
+			if nil == this.brokers[brokerID] {
+				logger.Info("(NotificationListener.Start) Create Notifier = ", *notifier)
+				this.brokers[brokerID] = notifier
+				go notifier.Start()
 			}
-			logger.Info("(NotificationListener.Start) Create Notifier = ", *notifier)
-			this.brokers[brokerID] = notifier
-			go notifier.Start()
+			handlers := this.listeners[brokerID]
+			if nil == handlers {
+				handlers = make(map[string]trigger.Handler)
+				this.listeners[brokerID] = handlers
+			}
+			/* Since only one handler, index would always be 0 */
+			handlers[strconv.Itoa(index)] = handler
 		}
-		handlers := this.listeners[brokerID]
-		if nil == handlers {
-			handlers = make(map[string]trigger.Handler)
-			this.listeners[brokerID] = handlers
-		}
-		handlers[strconv.Itoa(index)] = handler
 	}
+	logger.Info("(NotificationListener.Start) All listeners : this.listeners = ", this.listeners)
 
 	return nil
 }
