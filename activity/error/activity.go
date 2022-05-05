@@ -79,22 +79,22 @@ func (a *Error) Eval(context activity.Context) (done bool, err error) {
 	log.Info(fmt.Sprintf("Received event from activity: %s gateway: %s message: %s data: %s", activity, gateway, message, data))
 	oEnriched := []interface{}{
 		map[string]interface{}{
-			"producer": "error",
+			"producer": "ErrorHandler",
 			"name":     "Notification",
-			"value":    "Message",
+			"value":    "Error",
 		},
 		map[string]interface{}{
-			"producer": "error",
+			"producer": "ErrorHandler",
 			"name":     "source",
-			"value":    "Flogo Rule: " + activity,
+			"value":    "Failed component: " + activity,
 		},
 		map[string]interface{}{
-			"producer": "error",
+			"producer": "ErrorHandler",
 			"name":     "description",
 			"value":    message,
 		},
 		map[string]interface{}{
-			"producer": "error",
+			"producer": "ErrorHandler",
 			"name":     "data",
 			"value":    data,
 		},
