@@ -7,7 +7,7 @@
 package error
 
 import (
-	"errors"
+	//	"errors"
 	"fmt"
 	"sync"
 
@@ -52,28 +52,34 @@ func (a *Error) Eval(context activity.Context) (done bool, err error) {
 
 	activity, ok := context.GetInput(iActivity).(string)
 	if !ok {
-		return false, errors.New("Invalid activity ... ")
+		//return false, errors.New("Invalid activity ... ")
+		log.Warn("Invalid activity ... ")
 	}
 	message, ok := context.GetInput(iMessage).(string)
 	if !ok {
-		return false, errors.New("Invalid message ... ")
+		//return false, errors.New("Invalid message ... ")
+		log.Warn("Invalid message ... ")
 	}
 	data, ok := context.GetInput(iData).(string)
 	if !ok {
-		return false, errors.New("Invalid data ... ")
+		//return false, errors.New("Invalid data ... ")
+		log.Warn("Invalid data ... ")
 	}
 	gateway, ok := context.GetInput(iGateway).(string)
 	if !ok {
-		return false, errors.New("Invalid gateway ... ")
+		//return false, errors.New("Invalid gateway ... ")
+		log.Warn("Invalid gateway ... ")
 	}
 
 	reading, ok := context.GetInput(iReading).(map[string]interface{})
 	if !ok {
-		return false, errors.New("Invalid reading ... ")
+		//return false, errors.New("Invalid reading ... ")
+		log.Warn("Invalid reading ... ")
 	}
 	enriched, ok := context.GetInput(iEnriched).([]interface{})
 	if !ok {
-		return false, errors.New("Invalid enriched ... ")
+		//return false, errors.New("Invalid enriched ... ")
+		log.Warn("Invalid enriched ... ")
 	}
 
 	log.Info(fmt.Sprintf("Received event from activity: %s gateway: %s message: %s data: %s", activity, gateway, message, data))
