@@ -86,8 +86,8 @@ func (a *Error) Eval(context activity.Context) (done bool, err error) {
 	oEnriched := []interface{}{
 		map[string]interface{}{
 			"producer": "ErrorHandler",
-			"name":     "Notification",
-			"value":    "Error",
+			"name":     "ErrorCode",
+			"value":    "300",
 		},
 		map[string]interface{}{
 			"producer": "ErrorHandler",
