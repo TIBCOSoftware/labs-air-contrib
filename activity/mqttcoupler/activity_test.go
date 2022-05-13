@@ -1,8 +1,10 @@
 package mqttcoupler
 
 import (
+	"fmt"
 	"net"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -51,16 +53,23 @@ func TestEval(t *testing.T) {
 	settings := Settings{
 		Broker:          "tcp://localhost:1883",
 		Id:              "TestX",
-		Topic:           "/x/:a/y/:b",
-		ResponseTimeout: 5,
+		Topic:           "stmrequest",
+		ResponseTimeout: 50,
 	}
 	init := test.NewActivityInitContext(settings, nil)
 	act, err := New(init)
 	assert.Nil(t, err)
 	context := test.NewActivityContext(activityMd)
 	context.SetInput("message", `{"message": "hello world"}`)
-	context.SetInput("topicParams", map[string]string{"a": "test", "b": "j/k"})
-	done, err := act.Eval(context)
+
+	done := false
+	for {
+		done, err = act.Eval(context)
+		fmt.Println(context.GetOutput("data"))
+
+		time.Sleep(time.Duration(10) * time.Second)
+	}
+
 	assert.True(t, done)
 	assert.Nil(t, err)
 
