@@ -118,6 +118,8 @@ func New(ctx activity.InitContext) (activity.Activity, error) {
 	if err != nil {
 		return nil, err
 	}
+	ctx.Logger().Debug("(mqtt.New) Entering with connection id : ", settings.Id)
+	defer ctx.Logger().Debug("(mqtt.New) Exit for connection id : ", settings.Id)
 
 	options := initClientOption(ctx.Logger(), settings)
 

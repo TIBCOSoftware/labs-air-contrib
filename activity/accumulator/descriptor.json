@@ -44,13 +44,13 @@
 	"input":[
 		{
 			"name": "Input",
-			"type": "complex_object"
+			"type": "object"
 		}
 	],
 	"output": [
 		{
             "name": "Output",
-            "type": "complex_object"
+            "type": "object"
 		}
 	]
 }

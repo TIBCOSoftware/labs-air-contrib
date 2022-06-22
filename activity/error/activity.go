@@ -7,82 +7,95 @@
 package error
 
 import (
-	//	"errors"
 	"fmt"
-	"sync"
 
-	"github.com/TIBCOSoftware/flogo-lib/core/activity"
-	"github.com/TIBCOSoftware/flogo-lib/logger"
 	"github.com/TIBCOSoftware/labs-air-contrib/common/notification/notificationbroker"
+	"github.com/project-flogo/core/activity"
+	"github.com/project-flogo/core/data/coerce"
 )
 
-var log = logger.GetLogger("tibco-f1-Error")
-
-var initialized bool = false
-
-const (
-	iActivity = "Activity"
-	iMessage  = "Message"
-	iData     = "Data"
-	iGateway  = "Gateway"
-	iReading  = "Reading"
-	iEnriched = "Enriched"
-	oSuccess  = "Success"
-)
-
-type Error struct {
-	metadata *activity.Metadata
-	mux      sync.Mutex
+func init() {
+	_ = activity.Register(&Activity{})
 }
 
-func NewActivity(metadata *activity.Metadata) activity.Activity {
-	aError := &Error{
-		metadata: metadata,
+type Input struct {
+	Activity string                 `md:"Activity"`
+	Message  string                 `md:"Message"`
+	Data     string                 `md:"Data"`
+	Gateway  string                 `md:"Gateway"`
+	Reading  map[string]interface{} `md:"Reading"`
+	Enriched []interface{}          `md:"Enriched"`
+}
+
+func (i *Input) ToMap() map[string]interface{} {
+	return map[string]interface{}{
+		"Activity": i.Activity,
+		"Message":  i.Message,
+		"Data":     i.Data,
+		"Gateway":  i.Gateway,
+		"Reading":  i.Reading,
+		"Enriched": i.Enriched,
+	}
+}
+
+type Output struct {
+	Success bool `md:"Success"`
+}
+
+func (i *Input) FromMap(values map[string]interface{}) error {
+
+	var err error
+	i.Activity, err = coerce.ToString(values["Activity"])
+	if err != nil {
+		return err
+	}
+	i.Message, err = coerce.ToString(values["Message"])
+	if err != nil {
+		return err
+	}
+	i.Data, err = coerce.ToString(values["Data"])
+	if err != nil {
+		return err
+	}
+	i.Gateway, err = coerce.ToString(values["Gateway"])
+	if err != nil {
+		return err
 	}
 
-	return aError
+	ok := true
+	i.Reading, ok = values["Reading"].(map[string]interface{})
+	if !ok {
+		return err
+	}
+
+	i.Enriched, ok = values["Enriched"].([]interface{})
+	if !ok {
+		return err
+	}
+
+	return nil
 }
 
-func (a *Error) Metadata() *activity.Metadata {
-	return a.metadata
+var activityMd = activity.ToMetadata(&Input{})
+
+// Activity is an Activity that is used to send error
+type Activity struct {
 }
 
-func (a *Error) Eval(context activity.Context) (done bool, err error) {
+// Metadata returns the activity's metadata
+func (a *Activity) Metadata() *activity.Metadata {
+	return activityMd
+}
+
+// Eval implements api.Activity.Eval - send error
+func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
+	log := ctx.Logger()
 	log.Info("(Eval) entering ........ ")
 
-	activity, ok := context.GetInput(iActivity).(string)
-	if !ok {
-		//return false, errors.New("Invalid activity ... ")
-		log.Warn("Invalid activity ... ")
-	}
-	message, ok := context.GetInput(iMessage).(string)
-	if !ok {
-		//return false, errors.New("Invalid message ... ")
-		log.Warn("Invalid message ... ")
-	}
-	data, ok := context.GetInput(iData).(string)
-	if !ok {
-		//return false, errors.New("Invalid data ... ")
-		log.Warn("Invalid data ... ")
-	}
-	gateway, ok := context.GetInput(iGateway).(string)
-	if !ok {
-		//return false, errors.New("Invalid gateway ... ")
-		log.Warn("Invalid gateway ... ")
-	}
+	input := &Input{}
+	ctx.GetInputObject(input)
 
-	reading, ok := context.GetInput(iReading).(map[string]interface{})
-	if !ok {
-		//return false, errors.New("Invalid reading ... ")
-		log.Warn("Invalid reading ... ")
-	}
-	enriched, ok := context.GetInput(iEnriched).([]interface{})
-	if !ok {
-		//return false, errors.New("Invalid enriched ... ")
-		log.Warn("Invalid enriched ... ")
-	}
-
-	log.Info(fmt.Sprintf("Received event from activity: %s gateway: %s message: %s data: %s", activity, gateway, message, data))
+	log.Info(fmt.Sprintf("Received event from activity: %s gateway: %s message: %s data: %s", input.Activity, input.Gateway, input.Message, input.Data))
 	oEnriched := []interface{}{
 		map[string]interface{}{
 			"producer": "ErrorHandler",
@@ -92,39 +105,38 @@ func (a *Error) Eval(context activity.Context) (done bool, err error) {
 		map[string]interface{}{
 			"producer": "ErrorHandler",
 			"name":     "source",
-			"value":    "Failed component: " + activity,
+			"value":    "Failed component: " + input.Activity,
 		},
 		map[string]interface{}{
 			"producer": "ErrorHandler",
 			"name":     "description",
-			"value":    message,
+			"value":    input.Message,
 		},
 		map[string]interface{}{
 			"producer": "ErrorHandler",
 			"name":     "data",
-			"value":    data,
+			"value":    input.Data,
 		},
 	}
 
-	for index := range enriched {
-		oEnriched = append(oEnriched, enriched[index])
+	for index := range input.Enriched {
+		oEnriched = append(oEnriched, input.Enriched[index])
 	}
 
 	a.SendNotification("ErrorHandler", map[string]interface{}{
-		"gateway":  gateway,
-		"reading":  reading,
+		"gateway":  input.Gateway,
+		"reading":  input.Reading,
 		"enriched": oEnriched,
 	})
 
-	context.SetOutput(oSuccess, true)
+	ctx.SetOutput("Success", true)
 
 	log.Info("(Eval) exit ........ ")
 
 	return true, nil
 }
 
-func (a *Error) SendNotification(notifier string, notification map[string]interface{}) error {
-	log.Info("(Error.SendNotification) notifier : ", notifier, ", notification : ", notification)
+func (a *Activity) SendNotification(notifier string, notification map[string]interface{}) error {
 	notificationBroker := notificationbroker.GetFactory().GetNotificationBroker(notifier)
 	if nil != notificationBroker {
 		notificationBroker.SendEvent(notification)

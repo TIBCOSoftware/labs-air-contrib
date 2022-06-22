@@ -5,13 +5,11 @@
     "author": "TIBCO Software Inc.",
     "type": "flogo:activity",
     "display": {
-       "category": "LC",
-       "visible": true,
        "smallIcon": "error.png",
        "description": "This activity trigger error handling"
     },
 	"ref": "github.com/TIBCOSoftware/labs-air-contrib/activity/error",
-    "inputs": [
+    "input": [
  		{
 			"name": "Activity",
 			"type": "string"
@@ -37,7 +35,7 @@
             "type": "array"
 		}
     ],
-	"outputs": [
+	"output": [
  		{
 			"name": "Success",
 			"type": "boolean"
