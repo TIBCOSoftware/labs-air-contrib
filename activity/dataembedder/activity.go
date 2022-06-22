@@ -10,72 +10,132 @@ import (
 	"encoding/json"
 	"errors"
 	"reflect"
-	"sync"
 
-	"github.com/TIBCOSoftware/flogo-lib/core/activity"
-	"github.com/TIBCOSoftware/flogo-lib/logger"
-	"github.com/TIBCOSoftware/labs-lightcrane-contrib/common/util"
+	"github.com/project-flogo/core/activity"
+	"github.com/project-flogo/core/data/metadata"
 )
 
-var log = logger.GetLogger("tibco-f1-DataEmbedder")
-
-var initialized bool = false
-
 const (
-	sTargets              = "Targets"
-	iConsumer             = "Consumer"
-	iProducer             = "Producer"
-	iTargetData           = "TargetData"
-	iInputDataCollection  = "InputDataCollection"
 	oOutputDataCollection = "OutputDataCollection"
 )
 
-type DataEmbedder struct {
-	metadata  *activity.Metadata
-	mux       sync.Mutex
-	dataTypes map[string]map[string]string
+type Settings struct {
+	Targets string `md:"Targets"`
 }
 
-func NewActivity(metadata *activity.Metadata) activity.Activity {
-	aDataEmbedder := &DataEmbedder{
-		metadata:  metadata,
-		dataTypes: make(map[string]map[string]string),
+type Input struct {
+	Consumer            string                 `md:"Consumer"`
+	Producer            string                 `md:"Producer"`
+	TargetData          map[string]interface{} `md:"TargetData"`
+	InputDataCollection []interface{}          `md:"InputDataCollection"`
+}
+
+type Output struct {
+	OutputDataCollection []interface{} `md:"OutputDataCollection"`
+}
+
+func (i *Input) ToMap() map[string]interface{} {
+	return map[string]interface{}{
+		"Consumer":            i.Consumer,
+		"Producer":            i.Producer,
+		"TargetData":          i.TargetData,
+		"InputDataCollection": i.InputDataCollection,
 	}
-
-	return aDataEmbedder
 }
 
-func (a *DataEmbedder) Metadata() *activity.Metadata {
-
-	return a.metadata
-}
-
-func (a *DataEmbedder) Eval(context activity.Context) (done bool, err error) {
-
-	log.Debug("[Eval] entering ........ ")
-
-	producer, ok := context.GetInput(iProducer).(string)
+func (i *Input) FromMap(values map[string]interface{}) error {
+	ok := true
+	i.Consumer, ok = values["Consumer"].(string)
 	if !ok {
-		return false, errors.New("Invalid producer ... ")
+		return errors.New("Illegal Consumer type, expect string.")
 	}
+	i.Producer, ok = values["Producer"].(string)
+	if !ok {
+		return errors.New("Illegal Producer type, expect string.")
+	}
+	i.TargetData, ok = values["TargetData"].(map[string]interface{})
+	if !ok {
+		return errors.New("Illegal TargetData type, expect map[string]interface{}.")
+	}
+	i.InputDataCollection, ok = values["InputDataCollection"].([]interface{})
+	if !ok {
+		return errors.New("Illegal InputDataCollection type, expect []interface{}.")
+	}
+	return nil
+}
+
+func (o *Output) ToMap() map[string]interface{} {
+	return map[string]interface{}{
+		"OutputDataCollection": o.OutputDataCollection,
+	}
+}
+
+func (o *Output) FromMap(values map[string]interface{}) error {
+	ok := true
+	o.OutputDataCollection, ok = values["OutputDataCollection"].([]interface{})
+	if !ok {
+		return errors.New("Illegal OutputDataCollection type, expect []interface{}.")
+	}
+	return nil
+}
+
+var activityMd = activity.ToMetadata(&Settings{}, &Input{}, &Output{})
+
+func init() {
+	_ = activity.Register(&Activity{}, New)
+}
+
+type Activity struct {
+	dataTypes map[string]string
+}
+
+func New(ctx activity.InitContext) (activity.Activity, error) {
+
+	settings := &Settings{}
+	err := metadata.MapToStruct(ctx.Settings(), settings, true)
+	if err != nil {
+		return nil, err
+	}
+
+	dataTypes := make(map[string]string)
+	var variablesDef []interface{}
+	if err := json.Unmarshal([]byte(settings.Targets), &variablesDef); err != nil {
+		return nil, err
+	}
+	for _, variableDef := range variablesDef {
+		variableInfo := variableDef.(map[string]interface{})
+		dataTypes[variableInfo["Name"].(string)] = variableInfo["Type"].(string)
+	}
+
+	activity := &Activity{
+		dataTypes: dataTypes,
+	}
+
+	return activity, nil
+}
+
+func (a *Activity) Metadata() *activity.Metadata {
+	return activityMd
+}
+
+func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
+	log := ctx.Logger()
+	log.Debug("(Eval) entering ........ ")
+	defer log.Debug("(Eval) exit ........ ")
+
+	input := &Input{}
+	ctx.GetInputObject(input)
+
+	producer := input.Producer
 	log.Debug("[Eval]  producer : ", producer)
 
-	consumer, ok := context.GetInput(iConsumer).(string)
-	if !ok {
-		return false, errors.New("Invalid consumer ... ")
-	}
+	consumer := input.Consumer
 	log.Debug("[Eval]  consumer : ", consumer)
 
-	targetData, ok := context.GetInput(iTargetData).(map[string]interface{})
-	if !ok {
-		return false, errors.New("Invalid targetData ... ")
-	}
+	targetData := input.TargetData
 	log.Debug("[Eval]  targetData : ", targetData)
 
-	inputDataCollection, ok := context.GetInput(iInputDataCollection).([]interface{})
-	if !ok {
-		return false, errors.New("Invalid inputDataCollection ... ")
-	}
+	inputDataCollection := input.InputDataCollection
 	log.Debug("[Eval]  inputDataCollection : ", inputDataCollection)
 
 	outputDataCollection := make([]interface{}, len(inputDataCollection))
@@ -83,13 +143,12 @@ func (a *DataEmbedder) Eval(context activity.Context) (done bool, err error) {
 		outputDataCollection[index] = data
 	}
 
-	dataTypes, _ := a.getEnrichedDataType(context)
 	var newValue interface{}
 	for key, value := range targetData {
 		log.Debug("[Eval]  key : ", key, ", value : ", value)
 		dataType := "String"
-		if nil != dataTypes && "" != dataTypes[key] {
-			dataType = dataTypes[key]
+		if nil != a.dataTypes && "" != a.dataTypes[key] {
+			dataType = a.dataTypes[key]
 		}
 
 		log.Debug("[Eval]  dataType 01 : ", dataType)
@@ -123,30 +182,9 @@ func (a *DataEmbedder) Eval(context activity.Context) (done bool, err error) {
 	}
 
 	log.Debug("[Eval]  oOutputDataCollection : ", outputDataCollection)
-	context.SetOutput(oOutputDataCollection, outputDataCollection)
+	ctx.SetOutput(oOutputDataCollection, outputDataCollection)
 
 	log.Debug("[Eval] exit ........ ")
 
 	return true, nil
-}
-
-func (a *DataEmbedder) getEnrichedDataType(ctx activity.Context) (map[string]string, error) {
-	myId := util.ActivityId(ctx)
-	dataTypes := a.dataTypes[myId]
-
-	if nil == dataTypes {
-		a.mux.Lock()
-		defer a.mux.Unlock()
-		if nil == dataTypes {
-			dataTypes = make(map[string]string)
-			variablesDef, _ := ctx.GetSetting(sTargets)
-			log.Debug("[getEnrichedDataType] enriched data def = ", variablesDef)
-			for _, variableDef := range variablesDef.([]interface{}) {
-				variableInfo := variableDef.(map[string]interface{})
-				dataTypes[variableInfo["Name"].(string)] = variableInfo["Type"].(string)
-			}
-			a.dataTypes[myId] = dataTypes
-		}
-	}
-	return dataTypes, nil
 }

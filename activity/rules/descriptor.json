@@ -43,7 +43,7 @@
 			}
 		}
 	],
-    "inputs": [
+    "input": [
  		{
 			"name": "Data",
 			"type": "object"
@@ -53,7 +53,7 @@
             "type": "string"
 		}
     ],
-	"outputs": [
+	"output": [
  		{
 			"name": "Success",
 			"type": "boolean"

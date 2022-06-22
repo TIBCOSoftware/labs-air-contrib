@@ -6,78 +6,115 @@
 package accumulator
 
 import (
-	"sync"
+	"errors"
 
-	"github.com/TIBCOSoftware/flogo-lib/core/activity"
-	"github.com/TIBCOSoftware/flogo-lib/core/data"
-	"github.com/TIBCOSoftware/flogo-lib/logger"
-	"github.com/TIBCOSoftware/labs-lightcrane-contrib/common/util"
+	"github.com/project-flogo/core/activity"
+	"github.com/project-flogo/core/data/metadata"
 )
-
-// activityLogger is the default logger for the Filter Activity
-var log = logger.GetLogger("activity-accumulator")
 
 const (
-	arrayMode   = "ArrayMode"
-	windowSize  = "WindowSize"
 	lastElement = "LastElement"
-	input       = "Input"
-	output      = "Output"
 )
 
-// Mapping is an Activity that is used to Filter a message to the console
-type Accumulator struct {
-	metadata    *activity.Metadata
-	initialized bool
-	mux         sync.Mutex
-	windows     map[string]*Window
+type Settings struct {
+	ArrayMode  bool `md:"ArrayMode"`
+	WindowSize int  `md:"WindowSize"`
 }
 
-// NewActivity creates a new AppActivity
-func NewActivity(metadata *activity.Metadata) activity.Activity {
-	aCSVParserActivity := &Accumulator{
-		metadata: metadata,
-		windows:  make(map[string]*Window),
+type Input struct {
+	Input interface{} `md:"Input"`
+}
+
+type Output struct {
+	Output []interface{} `md:"Output"`
+}
+
+func (i *Input) ToMap() map[string]interface{} {
+	return map[string]interface{}{
+		"Input": i.Input,
 	}
-	return aCSVParserActivity
 }
 
-// Metadata returns the activity's metadata
-func (a *Accumulator) Metadata() *activity.Metadata {
-	return a.metadata
+func (i *Input) FromMap(values map[string]interface{}) error {
+	ok := true
+	i.Input, ok = values["Input"]
+	if !ok {
+		return errors.New("Illegal Input type, expect map[string]interface{}.")
+	}
+	return nil
 }
 
-// Eval implements api.Activity.Eval - Filters the Message
-func (a *Accumulator) Eval(ctx activity.Context) (done bool, err error) {
-	log.Info("[Accumulator:Eval] entering ........ ")
-	defer log.Info("[Accumulator:Eval] Exit ........ ")
+func (o *Output) ToMap() map[string]interface{} {
+	return map[string]interface{}{
+		"Output": o.Output,
+	}
+}
 
-	inputTuple := ctx.GetInput(input).(*data.ComplexObject)
-	log.Info("Input data = ", inputTuple.Value)
+func (o *Output) FromMap(values map[string]interface{}) error {
 
-	arrayMode, _ := ctx.GetSetting(arrayMode)
-	var outputTuple []map[string]interface{}
-	if nil != arrayMode && arrayMode.(bool) {
-		rawOutputTuple := inputTuple.Value.([]interface{})
-		outputTuple = make([]map[string]interface{}, len(rawOutputTuple))
+	o.Output = values["Output"].([]interface{})
+	return nil
+}
+
+var activityMd = activity.ToMetadata(&Settings{}, &Input{}, &Output{})
+
+func init() {
+	_ = activity.Register(&Activity{}, New)
+}
+
+type Activity struct {
+	arrayMode bool
+	window    *Window
+}
+
+func New(ctx activity.InitContext) (activity.Activity, error) {
+	settings := &Settings{}
+	err := metadata.MapToStruct(ctx.Settings(), settings, true)
+	if err != nil {
+		return nil, err
+	}
+
+	activity := &Activity{
+		arrayMode: settings.ArrayMode,
+		window:    NewWindow(settings.WindowSize),
+	}
+	return activity, nil
+}
+
+func (a *Activity) Metadata() *activity.Metadata {
+	return activityMd
+}
+
+func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
+	log := ctx.Logger()
+	log.Info("[DataSelector:Eval] entering ........ ")
+	defer log.Info("[DataSelector:Eval] exit ........ ")
+
+	input := &Input{}
+	ctx.GetInputObject(input)
+
+	log.Info("Input data = ", input.Input)
+
+	var outputTuple []interface{}
+	if a.arrayMode {
+		rawOutputTuple := input.Input.([]interface{})
+		outputTuple = make([]interface{}, len(rawOutputTuple))
 		for index, tuple := range rawOutputTuple {
-			outputTuple[index] = tuple.(map[string]interface{})
+			outputTuple[index] = tuple
 			if index < len(rawOutputTuple)-1 {
-				outputTuple[index][lastElement] = false
+				outputTuple[index].(map[string]interface{})[lastElement] = false
 			} else {
-				outputTuple[index][lastElement] = true
+				outputTuple[index].(map[string]interface{})[lastElement] = true
 			}
 		}
 		log.Info("(Array Mode) Output data = ", outputTuple)
 	} else {
-		window, err := a.getWindow(ctx)
-
 		if nil != err {
 			log.Error(err)
 			return false, err
 		}
 
-		outputTuple, err = window.update(inputTuple.Value.(map[string]interface{}))
+		outputTuple, err = a.window.update(input.Input.(map[string]interface{}))
 		if nil != err {
 			log.Error(err)
 			return false, err
@@ -86,31 +123,18 @@ func (a *Accumulator) Eval(ctx activity.Context) (done bool, err error) {
 	}
 
 	if nil != outputTuple {
-		ctx.SetOutput(output, outputTuple)
 		log.Debug("Output data = ", outputTuple)
+		output := &Output{}
+		output.Output = outputTuple
+		err = ctx.SetOutputObject(output)
+		if err != nil {
+			return false, err
+		}
 	} else {
 		return false, nil
 	}
 
 	return true, nil
-}
-
-func (a *Accumulator) getWindow(context activity.Context) (*Window, error) {
-	myId := util.ActivityId(context)
-	window := a.windows[myId]
-
-	if nil == window {
-		a.mux.Lock()
-		defer a.mux.Unlock()
-		window = a.windows[myId]
-		if nil == window {
-			windowSize, _ := context.GetSetting(windowSize)
-			window = NewWindow(windowSize.(int))
-			a.windows[myId] = window
-		}
-	}
-
-	return window, nil
 }
 
 func NewWindow(maxSize int) *Window {
@@ -120,7 +144,7 @@ func NewWindow(maxSize int) *Window {
 	window := &Window{
 		currentSize: 0,
 		maxSize:     maxSize,
-		tuples:      make([]map[string]interface{}, maxSize),
+		tuples:      make([]interface{}, maxSize),
 	}
 	return window
 }
@@ -128,10 +152,10 @@ func NewWindow(maxSize int) *Window {
 type Window struct {
 	currentSize int
 	maxSize     int
-	tuples      []map[string]interface{}
+	tuples      []interface{}
 }
 
-func (this *Window) update(tuple map[string]interface{}) ([]map[string]interface{}, error) {
+func (this *Window) update(tuple map[string]interface{}) ([]interface{}, error) {
 	this.currentSize += 1
 	this.tuples[this.currentSize-1] = tuple
 	if this.currentSize >= this.maxSize {

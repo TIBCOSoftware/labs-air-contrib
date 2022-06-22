@@ -12,56 +12,127 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/TIBCOSoftware/flogo-lib/core/activity"
-	"github.com/TIBCOSoftware/flogo-lib/logger"
 	"github.com/TIBCOSoftware/labs-air-contrib/activity/rules/internal/rules"
 	"github.com/TIBCOSoftware/labs-air-contrib/common/notification/notificationbroker"
-	kwr "github.com/TIBCOSoftware/labs-lightcrane-contrib/common/keywordreplace"
-	"github.com/TIBCOSoftware/labs-lightcrane-contrib/common/util"
+	"github.com/project-flogo/core/activity"
+	"github.com/project-flogo/core/data/metadata"
 )
-
-var log = logger.GetLogger("tibco-f1-Rules")
-
-var initialized bool = false
 
 const (
-	sLeftToken    = "leftToken"
-	sRightToken   = "rightToken"
-	sVariablesDef = "variablesDef"
-	sTargets      = "targets"
-	iData         = "Data"
-	iGateway      = "gateway"
-	iDevice       = "deviceName"
-	iEventID      = "id"
-	iName         = "resourceName"
-	iValue        = "value"
-	oSuccess      = "Success"
+	iGateway = "gateway"
+	iDevice  = "deviceName"
+	iEventID = "id"
+	iName    = "resourceName"
+	iValue   = "value"
+	oSuccess = "Success"
 )
 
-type Rules struct {
-	metadata *activity.Metadata
-	mux      sync.Mutex
-	engines  map[string]*rules.RuleEngine
+type Settings struct {
+	ID                    string `md:"id"`
+	TupleDescriptor       string `md:"tupleDescriptor"`
+	DefalutRuleDescriptor string `md:"defalutRuleDescriptor"`
 }
 
-func NewActivity(metadata *activity.Metadata) activity.Activity {
-	aRules := &Rules{
-		metadata: metadata,
-		engines:  make(map[string]*rules.RuleEngine),
+type Input struct {
+	Data           map[string]interface{} `md:"Data"`
+	RuleDescriptor string                 `md:"RuleDescriptor"`
+}
+
+type Output struct {
+	Success bool `md:"Success"`
+}
+
+func (i *Input) ToMap() map[string]interface{} {
+	return map[string]interface{}{
+		"Data":           i.Data,
+		"RuleDescriptor": i.RuleDescriptor,
+	}
+}
+
+func (i *Input) FromMap(values map[string]interface{}) error {
+	ok := true
+	i.Data, ok = values["Data"].(map[string]interface{})
+	if !ok {
+		return errors.New("Illegal Data type, expect map[string]interface{}.")
+	}
+	i.RuleDescriptor, ok = values["RuleDescriptor"].(string)
+	if !ok {
+		return errors.New("Illegal RuleDescriptor type, expect string.")
+	}
+	return nil
+}
+
+func (o *Output) ToMap() map[string]interface{} {
+	return map[string]interface{}{
+		"Success": o.Success,
+	}
+}
+
+func (o *Output) FromMap(values map[string]interface{}) error {
+	o.Success = values["Success"].(bool)
+	return nil
+}
+
+var activityMd = activity.ToMetadata(&Settings{}, &Input{}, &Output{})
+
+func init() {
+	_ = activity.Register(&Activity{}, New)
+}
+
+type Activity struct {
+	mux    sync.Mutex
+	engine *rules.RuleEngine
+}
+
+func New(ctx activity.InitContext) (activity.Activity, error) {
+
+	settings := &Settings{}
+	err := metadata.MapToStruct(ctx.Settings(), settings, true)
+	if err != nil {
+		return nil, err
 	}
 
-	return aRules
+	engineID := settings.ID
+	tupleDescriptor := settings.TupleDescriptor
+	defalutRuleDescriptor := settings.DefalutRuleDescriptor
+
+	engine := &rules.RuleEngine{}
+	engine.SetEngineID(engineID)
+	err = engine.CreateRuleSessionThenStart(tupleDescriptor)
+	if nil != err {
+		return nil, err
+	}
+	if "" != defalutRuleDescriptor && "{}" != defalutRuleDescriptor {
+		ruleDef := rules.RuleDefStruct{}
+		if err := json.Unmarshal([]byte(defalutRuleDescriptor), &ruleDef); err != nil {
+			return nil, errors.New("Processing config request ERROR\n")
+		}
+		engine.AddRule(ruleDef)
+	}
+
+	activity := &Activity{
+		engine: engine,
+	}
+	engine.SetSender(activity)
+
+	return activity, nil
 }
 
-func (a *Rules) Metadata() *activity.Metadata {
-	return a.metadata
+func (a *Activity) Metadata() *activity.Metadata {
+	return activityMd
 }
 
-func (a *Rules) Eval(context activity.Context) (done bool, err error) {
-	log.Info("(Eval) entering ........ data = ", context.GetInput(iData))
+func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
+	log := ctx.Logger()
+	input := &Input{}
+	ctx.GetInputObject(input)
 
-	data, ok := context.GetInput(iData).(map[string]interface{})
-	if !ok {
+	data := input.Data
+
+	log.Info("(Eval) entering ........ data = ", data)
+	defer log.Info("(Eval) exit ........ ")
+
+	if nil == data {
 		return false, errors.New("Invalid data ... ")
 	}
 	gateway, ok := data[iGateway].(string)
@@ -85,85 +156,23 @@ func (a *Rules) Eval(context activity.Context) (done bool, err error) {
 		return false, errors.New("Invalid value ... ")
 	}
 
-	log.Info(fmt.Sprintf("Received event from eventID: %s gateway: %s deviceName: %s instrument: %s value: %s", eventID, gateway, device, name, value))
+	log.Info(fmt.Sprintf("(Eval) Received event from eventID: %s gateway: %s deviceName: %s instrument: %s value: %s", eventID, gateway, device, name, value))
 
-	engine, err := a.getRuleEngine(context)
+	a.engine.GetOrCreateResourceTuple(gateway, device, name, value)
+	err = a.engine.Assert(eventID, gateway, device, name, value)
 	if nil != err {
 		return true, err
 	}
 
-	engine.GetOrCreateResourceTuple(gateway, device, name, value)
-	err = engine.Assert(eventID, gateway, device, name, value)
-	if nil != err {
-		return true, err
-	}
-
-	context.SetOutput(oSuccess, true)
-
-	log.Info("(Eval) exit ........ ")
+	ctx.SetOutput(oSuccess, true)
 
 	return true, nil
 }
 
-func (a *Rules) SendNotification(notifier string, notification map[string]interface{}) error {
-	log.Info("(Rules.SendNotification) notifier : ", notifier, ", notification : ", notification)
+func (a *Activity) SendNotification(notifier string, notification map[string]interface{}) error {
 	notificationBroker := notificationbroker.GetFactory().GetNotificationBroker(notifier)
 	if nil != notificationBroker {
 		notificationBroker.SendEvent(notification)
 	}
 	return nil
-}
-
-func (a *Rules) getRuleEngine(ctx activity.Context) (*rules.RuleEngine, error) {
-	var err error
-	myId := util.ActivityId(ctx)
-	engine := a.engines[myId]
-	if nil == engine {
-		a.mux.Lock()
-		defer a.mux.Unlock()
-		engine = a.engines[myId]
-		if nil == engine {
-			engineID, _ := ctx.GetSetting("id")
-			tupleDescriptor, _ := ctx.GetSetting("tupleDescriptor")
-			log.Info(fmt.Sprintf("Tuple Descriptor: %s", tupleDescriptor))
-			defalutRuleDescriptor, _ := ctx.GetSetting("defalutRuleDescriptor")
-			log.Info(fmt.Sprintf("Defalut Rule Descriptor: %s", defalutRuleDescriptor))
-
-			engine = &rules.RuleEngine{}
-			engine.SetEngineID(engineID.(string))
-			engine.SetSender(a)
-			err = engine.CreateRuleSessionThenStart(tupleDescriptor.(string))
-			if nil != err {
-				return nil, err
-			}
-			log.Info("Engine created ........ ")
-			if nil != defalutRuleDescriptor && "{}" != defalutRuleDescriptor {
-				log.Info("Build rule definitione ........ ")
-				ruleDef := rules.RuleDefStruct{}
-				if err := json.Unmarshal([]byte(defalutRuleDescriptor.(string)), &ruleDef); err != nil {
-					log.Error(err)
-					return nil, errors.New("Processing config request ERROR\n")
-				}
-				log.Infof("Processing addRule - Raw Object in main: %+v\n", ruleDef)
-				engine.AddRule(ruleDef)
-				log.Info("Processing addRule done .... ")
-			}
-
-			a.engines[myId] = engine
-		}
-		log.Info("engine = ", engine)
-	}
-	return engine, err
-}
-
-func (a *Rules) getVariableMapper(ctx activity.Context) *kwr.KeywordMapper {
-	lefttoken, exist := ctx.GetSetting(sLeftToken)
-	if !exist {
-		return nil
-	}
-	righttoken, exist := ctx.GetSetting(sRightToken)
-	if !exist {
-		return nil
-	}
-	return kwr.NewKeywordMapper("", lefttoken.(string), righttoken.(string))
 }

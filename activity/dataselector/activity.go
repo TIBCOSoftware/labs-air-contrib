@@ -4,88 +4,145 @@
  * in the license file that is distributed with this file.
  */
 
-/*
-	{
-		"imports": [],
-		"name": "ProjectAirApplication",
-		"description": "",
-		"version": "1.0.0",
-		"type": "flogo:app",
-		"appModel": "1.1.1",
-		"feVersion": "2.9.0",
-		"triggers": [],
-		"resources": [],
-		"properties": [],
-		"connections": {},
-		"contrib": "",
-		"fe_metadata": ""
-	}
-*/
-
 package dataselector
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
-	"sync"
 
 	kwr "github.com/TIBCOSoftware/labs-lightcrane-contrib/common/keywordreplace"
-	"github.com/TIBCOSoftware/labs-lightcrane-contrib/common/util"
-	"github.com/TIBCOSoftware/flogo-lib/core/activity"
-	"github.com/TIBCOSoftware/flogo-lib/logger"
+	//	"github.com/TIBCOSoftware/labs-lightcrane-contrib/common/util"
+	"github.com/project-flogo/core/activity"
+	"github.com/project-flogo/core/data/metadata"
 )
-
-var log = logger.GetLogger("labs-lc-activity-DataSelector")
-
-var initialized bool = false
 
 const (
-	sLeftToken      = "leftToken"
-	sRightToken     = "rightToken"
-	sVariablesDef   = "variablesDef"
-	sTargets        = "targets"
-	iVariable       = "Variables"
-	iDataCollection = "DataCollection"
-	oExtractedData  = "ExtractedData"
+	oExtractedData = "ExtractedData"
 )
 
-type DataSelector struct {
-	metadata  *activity.Metadata
-	mux       sync.Mutex
-	selectors map[string]map[string]string
+type Settings struct {
+	LeftToken    string `md:"leftToken"`
+	RightToken   string `md:"rightToken"`
+	VariablesDef string `md:"variablesDef"`
+	Targets      string `md:"targets"`
 }
 
-func NewActivity(metadata *activity.Metadata) activity.Activity {
-	aDataSelector := &DataSelector{
-		metadata:  metadata,
-		selectors: make(map[string]map[string]string),
+type Input struct {
+	Variables      map[string]interface{} `md:"Variables"`
+	DataCollection []interface{}          `md:"DataCollection"`
+}
+
+type Output struct {
+	ExtractedData interface{} `md:"ExtractedData"`
+}
+
+func (i *Input) ToMap() map[string]interface{} {
+	return map[string]interface{}{
+		"Variables":      i.Variables,
+		"DataCollection": i.DataCollection,
+	}
+}
+
+func (i *Input) FromMap(values map[string]interface{}) error {
+	ok := true
+	i.Variables, ok = values["Variables"].(map[string]interface{})
+	if !ok {
+		return errors.New("Illegal Variables type, expect map[string]interface{}.")
+	}
+	i.DataCollection, ok = values["DataCollection"].([]interface{})
+	if !ok {
+		return errors.New("Illegal DataCollection type, expect []interface{}.")
+	}
+	return nil
+}
+
+func (o *Output) ToMap() map[string]interface{} {
+	return map[string]interface{}{
+		"ExtractedData": o.ExtractedData,
+	}
+}
+
+func (o *Output) FromMap(values map[string]interface{}) error {
+
+	o.ExtractedData = values["ExtractedData"].(interface{})
+	return nil
+}
+
+var activityMd = activity.ToMetadata(&Settings{}, &Input{}, &Output{})
+
+func init() {
+	_ = activity.Register(&Activity{}, New)
+}
+
+type Activity struct {
+	selector      map[string]string
+	keywordMapper *kwr.KeywordMapper
+}
+
+func New(ctx activity.InitContext) (activity.Activity, error) {
+	settings := &Settings{}
+	err := metadata.MapToStruct(ctx.Settings(), settings, true)
+	if err != nil {
+		return nil, err
 	}
 
-	return aDataSelector
+	var variablesDef []interface{}
+	if err := json.Unmarshal([]byte(settings.VariablesDef), &variablesDef); err != nil {
+		return nil, err
+	}
+
+	variables := make(map[string]interface{})
+	for _, variableDef := range variablesDef {
+		variableInfo := variableDef.(map[string]interface{})
+		variables[variableInfo["Name"].(string)] = variableInfo["Type"].(string)
+	}
+
+	var targetsDef []interface{}
+	if err := json.Unmarshal([]byte(settings.Targets), &targetsDef); err != nil {
+		return nil, err
+	}
+
+	selector := make(map[string]string)
+	if nil != targetsDef {
+		for _, targetDef := range targetsDef {
+			targetInfo := targetDef.(map[string]interface{})
+			filedMatch := targetInfo["FieldMatch"].(string)
+			selector[filedMatch] = targetInfo["Name"].(string)
+		}
+	}
+
+	var keywordMapper *kwr.KeywordMapper
+	lefttoken := settings.LeftToken
+	righttoken := settings.RightToken
+	if "" != lefttoken && "" != righttoken {
+		keywordMapper = kwr.NewKeywordMapper("", lefttoken, righttoken)
+	}
+
+	activity := &Activity{
+		selector:      selector,
+		keywordMapper: keywordMapper,
+	}
+
+	return activity, nil
 }
 
-func (a *DataSelector) Metadata() *activity.Metadata {
-	return a.metadata
+func (a *Activity) Metadata() *activity.Metadata {
+	return activityMd
 }
 
-func (a *DataSelector) Eval(context activity.Context) (done bool, err error) {
-
+func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
+	log := ctx.Logger()
 	log.Info("[DataSelector:Eval] entering ........ ")
 	defer log.Info("[DataSelector:Eval] exit ........ ")
 
-	inputDataCollection, ok := context.GetInput(iDataCollection).([]interface{})
-	if !ok {
-		return false, errors.New("Invalid inputDataCollection ... ")
-	}
+	input := &Input{}
+	ctx.GetInputObject(input)
 
-	selector, err := a.getSelector(context)
-	log.Debug("[DataSelector:Eval] selector : ", selector)
-	if nil != err {
-		return true, err
-	}
+	log.Debug("[DataSelector:Eval] selector : ", a.selector)
 
 	mapping := make(map[string]interface{})
-	for _, data := range inputDataCollection {
+	for _, data := range input.DataCollection {
 		producer := data.(map[string]interface{})["producer"]
 		if nil == producer {
 			producer = ""
@@ -110,14 +167,12 @@ func (a *DataSelector) Eval(context activity.Context) (done bool, err error) {
 
 	log.Debug("[DataSelector:Eval] mapping : ", mapping)
 
-	pathMapper := a.getVariableMapper(context)
-	variable := context.GetInput(iVariable)
-	log.Debug("[DataSelector:Eval] pathMapper : ", pathMapper)
-	log.Debug("[DataSelector:Eval] variable : ", variable)
+	log.Debug("[DataSelector:Eval] pathMapper : ", a.keywordMapper)
+	log.Debug("[DataSelector:Eval] variable : ", input.Variables)
 	extractedData := make(map[string]interface{})
-	for key, name := range selector {
-		if nil != variable && nil != pathMapper {
-			key = pathMapper.Replace(key, variable.(map[string]interface{}))
+	for key, name := range a.selector {
+		if nil != input.Variables && nil != a.keywordMapper {
+			key = a.keywordMapper.Replace(key, input.Variables)
 			log.Info("[DataSelector:Eval] key : ", key)
 		}
 		if nil != mapping[key] {
@@ -129,56 +184,7 @@ func (a *DataSelector) Eval(context activity.Context) (done bool, err error) {
 	}
 
 	log.Debug("[DataSelector:Eval]  oExtractedData : ", extractedData)
-	context.SetOutput(oExtractedData, extractedData)
+	ctx.SetOutput(oExtractedData, extractedData)
 
 	return true, nil
-}
-
-func (a *DataSelector) getSelector(ctx activity.Context) (map[string]string, error) {
-	myId := util.ActivityId(ctx)
-	selector := a.selectors[myId]
-	if nil == selector {
-		a.mux.Lock()
-		defer a.mux.Unlock()
-		selector = a.selectors[myId]
-		if nil == selector {
-
-			variables := make(map[string]interface{})
-			variablesDef, _ := ctx.GetSetting(sVariablesDef)
-			log.Debug("Processing handlers : variablesDef = ", variablesDef)
-			for _, variableDef := range variablesDef.([]interface{}) {
-				variableInfo := variableDef.(map[string]interface{})
-				variables[variableInfo["Name"].(string)] = variableInfo["Type"].(string)
-			}
-
-			selector = make(map[string]string)
-			targetsDef, ok := ctx.GetSetting(sTargets)
-			log.Debug("[DataSelector:getSelector] Processing handlers : sTargets = ", targetsDef)
-			if ok && nil != targetsDef {
-				for _, targetDef := range targetsDef.([]interface{}) {
-					targetInfo := targetDef.(map[string]interface{})
-					log.Debug("[DataSelector:getSelector] targetInfo = ", targetInfo)
-					filedMatch := targetInfo["FieldMatch"].(string)
-					selector[filedMatch] = targetInfo["Name"].(string)
-					log.Debug("[DataSelector:getSelector] selector = ", selector)
-				}
-			}
-
-			a.selectors[myId] = selector
-		}
-		log.Debug("[DataSelector:getSelector] selector = ", selector)
-	}
-	return selector, nil
-}
-
-func (a *DataSelector) getVariableMapper(ctx activity.Context) *kwr.KeywordMapper {
-	lefttoken, exist := ctx.GetSetting(sLeftToken)
-	if !exist {
-		return nil
-	}
-	righttoken, exist := ctx.GetSetting(sRightToken)
-	if !exist {
-		return nil
-	}
-	return kwr.NewKeywordMapper("", lefttoken.(string), righttoken.(string))
 }
