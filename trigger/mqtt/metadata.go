@@ -25,9 +25,10 @@ type HandlerSettings struct {
 }
 
 type Output struct {
-	Content     interface{}       `md:"content"`     // The content of the json message recieved
-	Topic       string            `md:"topic"`       // The MQTT topic
-	TopicParams map[string]string `md:"topicParams"` // The topic parameters
+	Id          string                 `md:"id"`          // The id of client
+	Content     interface{}            `md:"content"`     // The content of the json message recieved
+	Topic       string                 `md:"topic"`       // The MQTT topic
+	TopicParams map[string]interface{} `md:"topicParams"` // The topic parameters
 }
 
 type Reply struct {
@@ -36,6 +37,7 @@ type Reply struct {
 
 func (o *Output) ToMap() map[string]interface{} {
 	return map[string]interface{}{
+		"id":          o.Id,
 		"content":     o.Content,
 		"topic":       o.Topic,
 		"topicParams": o.TopicParams,
@@ -45,11 +47,15 @@ func (o *Output) ToMap() map[string]interface{} {
 func (o *Output) FromMap(values map[string]interface{}) error {
 
 	var err error
+	o.Id, err = coerce.ToString(values["id"])
+	if err != nil {
+		return err
+	}
 	o.Topic, err = coerce.ToString(values["topic"])
 	if err != nil {
 		return err
 	}
-	o.TopicParams, err = coerce.ToParams(values["topicParams"])
+	o.TopicParams, err = coerce.ToObject(values["topicParams"])
 	if err != nil {
 		return err
 	}
