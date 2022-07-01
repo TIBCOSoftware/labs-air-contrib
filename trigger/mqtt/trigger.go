@@ -393,10 +393,16 @@ func (t *Trigger) runHandler(handler trigger.Handler, payload []byte, topic stri
 		content = payload
 	}
 
+	topicParams := make(map[string]interface{})
+	for key, value := range params {
+		topicParams[key] = value
+	}
+
 	out := &Output{
+		Id:          t.settings.Id,
 		Content:     content,
 		Topic:       topic,
-		TopicParams: params,
+		TopicParams: topicParams,
 	}
 
 	results, err := handler.Handle(context.Background(), out)
