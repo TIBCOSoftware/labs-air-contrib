@@ -75,13 +75,13 @@
 			"required": true
 		}
     ],
-    "inputs": [
+    "input": [
  		{
 			"name": "Graph",
 			"type": "object"
 		}
     ],
-    "outputs": [
+    "output": [
 		{
             "name": "MessageId",
             "type": "string"

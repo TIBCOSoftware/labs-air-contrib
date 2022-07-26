@@ -5,15 +5,15 @@ import (
 )
 
 type Settings struct {
-	Broker        string                 `md:"broker,required"` // The broker URL
-	Id            string                 `md:"id,required"`     // The id of client
-	Username      string                 `md:"username"`        // The user's name
-	Password      string                 `md:"password"`        // The user's password
-	Store         string                 `md:"store"`           // The store for message persistence
-	CleanSession  bool                   `md:"cleanSession"`    // Clean session flag
-	KeepAlive     int                    `md:"keepAlive"`       // Keep Alive time in seconds
-	AutoReconnect bool                   `md:"autoReconnect"`   // Enable Auto-Reconnect
-	SSLConfig     map[string]interface{} `md:"sslConfig"`       // SSL Configuration
+	Broker        string `md:"broker,required"` // The broker URL
+	Id            string `md:"id,required"`     // The id of client
+	Username      string `md:"username"`        // The user's name
+	Password      string `md:"password"`        // The user's password
+	Store         string `md:"store"`           // The store for message persistence
+	CleanSession  bool   `md:"cleanSession"`    // Clean session flag
+	KeepAlive     int    `md:"keepAlive"`       // Keep Alive time in seconds
+	AutoReconnect bool   `md:"autoReconnect"`   // Enable Auto-Reconnect
+	SSLConfig     string `md:"sslConfig"`       // SSL Configuration
 }
 
 type HandlerSettings struct {

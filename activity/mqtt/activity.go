@@ -2,6 +2,7 @@ package mqtt
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
@@ -124,19 +125,20 @@ func New(ctx activity.InitContext) (activity.Activity, error) {
 	options := initClientOption(ctx.Logger(), settings)
 
 	if strings.HasPrefix(settings.Broker, "ssl") {
+		var SSLConfig map[string]interface{}
+		err := json.Unmarshal([]byte(settings.SSLConfig), SSLConfig)
 
 		cfg := &ssl.Config{}
-
-		if len(settings.SSLConfig) != 0 {
-			err := cfg.FromMap(settings.SSLConfig)
+		if nil == err && 0 != len(SSLConfig) {
+			err := cfg.FromMap(SSLConfig)
 			if err != nil {
 				return nil, err
 			}
 
-			if _, set := settings.SSLConfig["skipVerify"]; !set {
+			if _, set := SSLConfig["skipVerify"]; !set {
 				cfg.SkipVerify = true
 			}
-			if _, set := settings.SSLConfig["useSystemCert"]; !set {
+			if _, set := SSLConfig["useSystemCert"]; !set {
 				cfg.UseSystemCert = true
 			}
 		} else {
