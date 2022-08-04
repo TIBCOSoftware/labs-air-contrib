@@ -215,7 +215,7 @@ func (t *Trigger) Initialize(ctx trigger.InitContext) error {
 		t.logger.Warnf("Recieved message on unhandled topic: %s", msg.Topic())
 	})
 
-	t.logger.Debugf("Client options: %v", options)
+	//t.logger.Debugf("Client options: %v", options)
 
 	t.handlers = make(map[string]*clientHandler)
 
