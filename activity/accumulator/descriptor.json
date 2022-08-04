@@ -21,6 +21,15 @@
 			"value": false
 		},
 		{
+			"name": "MarkLast",
+			"type": "boolean",
+			"display": {
+				"name": "Mark Last Element",
+				"description": "Mark Last Element on Output"
+			},
+			"value": true
+		},
+		{
 			"name": "WindowSize",
 			"type": "integer",
 			"display": {
