@@ -19,6 +19,7 @@ const (
 type Settings struct {
 	ArrayMode  bool `md:"ArrayMode"`
 	WindowSize int  `md:"WindowSize"`
+	MarkLast   bool `md:"MarkLast"`
 }
 
 type Input struct {
@@ -64,6 +65,7 @@ func init() {
 
 type Activity struct {
 	arrayMode bool
+	markLast  bool
 	window    *Window
 }
 
@@ -76,6 +78,7 @@ func New(ctx activity.InitContext) (activity.Activity, error) {
 
 	activity := &Activity{
 		arrayMode: settings.ArrayMode,
+		markLast:  settings.MarkLast,
 		window:    NewWindow(settings.WindowSize),
 	}
 	return activity, nil
@@ -101,10 +104,12 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 		outputTuple = make([]interface{}, len(rawOutputTuple))
 		for index, tuple := range rawOutputTuple {
 			outputTuple[index] = tuple
-			if index < len(rawOutputTuple)-1 {
-				outputTuple[index].(map[string]interface{})[lastElement] = false
-			} else {
-				outputTuple[index].(map[string]interface{})[lastElement] = true
+			if a.markLast {
+				if index < len(rawOutputTuple)-1 {
+					outputTuple[index].(map[string]interface{})[lastElement] = false
+				} else {
+					outputTuple[index].(map[string]interface{})[lastElement] = true
+				}
 			}
 		}
 		log.Info("(Array Mode) Output data = ", outputTuple)
@@ -114,7 +119,7 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 			return false, err
 		}
 
-		outputTuple, err = a.window.update(input.Input.(map[string]interface{}))
+		outputTuple, err = a.window.update(input.Input.(map[string]interface{}), a.markLast)
 		if nil != err {
 			log.Error(err)
 			return false, err
@@ -155,15 +160,19 @@ type Window struct {
 	tuples      []interface{}
 }
 
-func (this *Window) update(tuple map[string]interface{}) ([]interface{}, error) {
+func (this *Window) update(tuple map[string]interface{}, markLast bool) ([]interface{}, error) {
 	this.currentSize += 1
 	this.tuples[this.currentSize-1] = tuple
 	if this.currentSize >= this.maxSize {
-		tuple[lastElement] = true
+		if markLast {
+			tuple[lastElement] = true
+		}
 		this.currentSize = 0
 		return this.tuples, nil
 	} else {
-		tuple[lastElement] = false
+		if markLast {
+			tuple[lastElement] = false
+		}
 	}
 	return nil, nil
 }
