@@ -180,21 +180,18 @@ func (t *Trigger) Initialize(ctx trigger.InitContext) error {
 	t.options = options
 
 	if strings.HasPrefix(settings.Broker, "ssl") {
-		var SSLConfig map[string]interface{}
-		err := json.Unmarshal([]byte(settings.SSLConfig), SSLConfig)
-
 		cfg := &ssl.Config{}
 
-		if nil == err && 0 != len(SSLConfig) {
-			err := cfg.FromMap(SSLConfig)
+		if len(settings.SSLConfig) != 0 {
+			err := cfg.FromMap(settings.SSLConfig)
 			if err != nil {
 				return err
 			}
 
-			if _, set := SSLConfig["skipVerify"]; !set {
+			if _, set := settings.SSLConfig["skipVerify"]; !set {
 				cfg.SkipVerify = true
 			}
-			if _, set := SSLConfig["useSystemCert"]; !set {
+			if _, set := settings.SSLConfig["useSystemCert"]; !set {
 				cfg.UseSystemCert = true
 			}
 		} else {
