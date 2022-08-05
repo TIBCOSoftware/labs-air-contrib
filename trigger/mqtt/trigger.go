@@ -176,6 +176,9 @@ func (t *Trigger) Initialize(ctx trigger.InitContext) error {
 	t.logger = ctx.Logger()
 
 	settings := t.settings
+
+	t.logger.Debug("Recieving SETTINGS : ", settings)
+
 	options := t.initClientOption(settings)
 	t.options = options
 
