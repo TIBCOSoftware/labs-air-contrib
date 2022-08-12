@@ -7,11 +7,17 @@
 package error
 
 import (
+	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/TIBCOSoftware/labs-air-contrib/common/notification/notificationbroker"
 	"github.com/project-flogo/core/activity"
 	"github.com/project-flogo/core/data/coerce"
+)
+
+const (
+	EXTRA_DATA = "[[AIR::EXTRA_DATA]]"
 )
 
 func init() {
@@ -61,15 +67,12 @@ func (i *Input) FromMap(values map[string]interface{}) error {
 	if err != nil {
 		return err
 	}
-
-	ok := true
-	i.Reading, ok = values["Reading"].(map[string]interface{})
-	if !ok {
+	i.Reading, err = coerce.ToObject(values["Reading"])
+	if err != nil {
 		return err
 	}
-
-	i.Enriched, ok = values["Enriched"].([]interface{})
-	if !ok {
+	i.Enriched, err = coerce.ToArray(values["Enriched"])
+	if err != nil {
 		return err
 	}
 
@@ -95,7 +98,18 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 	input := &Input{}
 	ctx.GetInputObject(input)
 
+	log.Info(fmt.Sprintf("Received event input: %v", input))
 	log.Info(fmt.Sprintf("Received event from activity: %s gateway: %s message: %s data: %s", input.Activity, input.Gateway, input.Message, input.Data))
+
+	var result interface{}
+	extraDataPos := strings.Index(input.Message, EXTRA_DATA)
+	if 0 <= extraDataPos {
+		extraDataStr := input.Message[extraDataPos+len(EXTRA_DATA):]
+		if err := json.Unmarshal([]byte(extraDataStr), &result); nil != err {
+			log.Warn("No result data back from failed component !")
+		}
+	}
+
 	oEnriched := []interface{}{
 		map[string]interface{}{
 			"producer": "ErrorHandler",
@@ -105,7 +119,12 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 		map[string]interface{}{
 			"producer": "ErrorHandler",
 			"name":     "source",
-			"value":    "Failed component: " + input.Activity,
+			"value":    input.Activity,
+		},
+		map[string]interface{}{
+			"producer": input.Activity,
+			"name":     "result",
+			"value":    result,
 		},
 		map[string]interface{}{
 			"producer": "ErrorHandler",
