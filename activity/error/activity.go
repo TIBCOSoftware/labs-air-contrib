@@ -101,13 +101,15 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 	log.Info(fmt.Sprintf("Received event input: %v", input))
 	log.Info(fmt.Sprintf("Received event from activity: %s gateway: %s message: %s data: %s", input.Activity, input.Gateway, input.Message, input.Data))
 
+	message := input.Message
 	var result interface{}
-	extraDataPos := strings.Index(input.Message, EXTRA_DATA)
+	extraDataPos := strings.Index(message, EXTRA_DATA)
 	if 0 <= extraDataPos {
-		extraDataStr := input.Message[extraDataPos+len(EXTRA_DATA):]
+		extraDataStr := message[extraDataPos+len(EXTRA_DATA):]
 		if err := json.Unmarshal([]byte(extraDataStr), &result); nil != err {
 			log.Warn("No result data back from failed component !")
 		}
+		message = message[0 : extraDataPos+len(EXTRA_DATA)]
 	}
 
 	oEnriched := []interface{}{
@@ -129,7 +131,7 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 		map[string]interface{}{
 			"producer": "ErrorHandler",
 			"name":     "description",
-			"value":    input.Message,
+			"value":    message,
 		},
 		map[string]interface{}{
 			"producer": "ErrorHandler",
