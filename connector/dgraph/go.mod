@@ -8,5 +8,5 @@ require (
 	github.com/dgraph-io/dgo/v200 v200.0.0-20210401091508-95bfd74de60e // indirect
 	github.com/dgraph-io/dgraph v1.2.8 // indirect
 	github.com/project-flogo/core v1.5.0
-	google.golang.org/grpc v1.42.0 // indirect
+	google.golang.org/grpc v1.53.0 // indirect
 )
